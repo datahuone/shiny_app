@@ -41,6 +41,22 @@ aikasarja_data_raw <- feather::read_feather("data/aikasarjat/kulutus_kk.feather"
 Kunnan_nimet <- kunnat %>%
   distinct(kunnan_nimi)
 
+uusin_kulutus <- lataa_viimeisin_fingrid("reaali kokonaiskulutus")
+uusin_tuotanto <- lataa_viimeisin_fingrid("reaali kokonaistuotanto")
+uusin_tuuli <- lataa_viimeisin_fingrid("reaali tuulivoima")
+uusin_vienti <- lataa_viimeisin_fingrid("reaali vienti")
+
+viikko_data_fd <- lataa_viikko_fingridistä() %>%
+  arrange(desc(time)) %>%
+  slice(which(row_number() %% 20 == 1)) %>%
+  mutate(time = lubridate::ymd_hms(time)) %>%
+  mutate(time = lubridate::floor_date(time, unit = "hours"))
+
+
+vuorokausi_sitten <- viikko_data_fd %>%
+  filter(time == lubridate::floor_date(
+    Sys.time()-lubridate::days(1),
+    unit = "hours"))
 
 
 # UI -------------------------------------
@@ -90,9 +106,9 @@ ui <- navbarPage(
           width = 10)),
       fluidRow(
         column(
-          p("Täältä voit tutkia Suomen kotitalouksien sähkönkäyttöä Fingrid Datahubin tilastotietojen avulla, jotka on yhdistetty Tilastokeskuksen rekisteriaineistoihin. Sivulla Reaaliaikainen sähkönkäyttötilanne on mahdollista nähdä reaaliaikaisia tioetoja "),
+          p("Täältä voit tutkia Suomen kotitalouksien sähkönkäyttöä Fingrid Datahubin tilastotietojen avulla, jotka on yhdistetty Tilastokeskuksen rekisteriaineistoihin. Sivulla Reaaliaikainen sähkönkäyttötilanne on mahdollista nähdä reaaliaikaisia tioetoja, jotka on peräisin FIngridin avoimen datan aplvelusta."),
 
-          p("Sivustollamme on mahdollista tarkastella Suomen kotitalouksien sähkönkäyttöä eri tarkastelutasoilla. Sivulla Kotitalouksien kokonaiskulutuksen trendit voi tarkastella eri maantieteellisten alueiden, kokonaissähkönkulutusta sekä per henkilökulutusta."),
+          p("Sivustollamme on mahdollista tarkastella Suomen kotitalouksien sähkönkäyttöä eri tarkastelutasoilla. Sivulla Kotitalouksien kokonaiskulutuksen trendit voi tarkastella eri maantieteellisten alueiden, kokonaissähkönkulutusta sekä kulutusta per henkilö."),
 
           p("Sivulla Sosioekonomisten muuttujien vaikutus voi tarkastella erilaisten sosioekonomisten muuttujien vaikutusta sähkönkulutukseen. Näihin muuttujiin kuuluvat esimerkiksi asuntokuntien tulotaso, asumismuoto ja koko. Tämä tarkastelutapa auttaa ymmärtämään, mitkä tekijät vaikuttavat eniten sähkönkulutukseen ja miten ne korreloivat keskenään."),
 
@@ -119,6 +135,15 @@ ui <- navbarPage(
           valueBoxOutput("kokonaiskulutus", width = 4),
           valueBoxOutput("kokonaistuotanto", width = 4),
           valueBoxOutput("tuulisuhde", width = 4)
+        ),
+        fluidRow(
+          valueBoxOutput("muutoskulutus", width = 4),
+          valueBoxOutput("muutostuotanto", width = 4),
+          valueBoxOutput("nettovienti", width = 4)
+        ),
+        fluidRow(h2("Sähkön kulutus sekä tuotanto viimeisen viikon aikana")),
+        fluidRow(
+          column(plotOutput("viikkoplot"), width = 10)
         )
       )
     ),
@@ -158,21 +183,20 @@ ui <- navbarPage(
             selected = "Kokonaiskulutus",
             choices = c("Kokonaiskulutus",
                         "per capita")
-          )
+          ),
+          p("Voit vaikuttaa kuvaajaan muuttamalla yllä olevia valintoja")
         ),
         mainPanel(
-          fluidRow(h1("Sähkönkäytön trendit Suomessa")),
+          fluidRow(h1("Kotitalouksien sähkönkäyttö")),
           fluidRow(
-            column(width = 1),
-            column(plotOutput("aikasarjaplot"), width = 10),
-            column(width = 1)
+            column(plotOutput("aikasarjaplot"), width = 11),
             )
           )
         )
       ),
     ## desiilipaneeli --------------------------------
     tabPanel(
-      title = "Sosioekonomisten muuttujien vaikutus",
+      title = "Sosioekonomisten muuttujien tarkastelu",
       sidebarLayout(
           sidebarPanel(
             selectInput(
@@ -230,17 +254,16 @@ ui <- navbarPage(
               h3(textOutput("taustaotsikko"))
               ),
             fluidRow(
+              downloadButton("download", "Lataa csv")
+            ),
+            fluidRow(
               column(width = 1),
               column(
                 plotOutput("tausta"),
                 width = 10
               ),
               column(width = 1)
-              ),
-            fluidRow(
-              column(width = 8),
-              downloadButton("download", "Lataa csv")
-            )
+              )
             )
           )
       ),
@@ -290,10 +313,10 @@ ui <- navbarPage(
   navbarMenu(
     title = "Lisätietoja",
     tabPanel(
-      title = "Datalähteet",
+      title = "Taustaa datasta",
       h2("Oletukset datan taustalla:"),
       column(width = 1),
-      column('Työn alla', width = 10),
+      column(includeMarkdown("data/dataselite.md"), width = 10),
       column(width = 1)
       ),
     tabPanel(
@@ -419,37 +442,67 @@ server <- function(input, output, session) {
   ## fingrid  -----------------------------
   output$kokonaiskulutus <- shinydashboard::renderValueBox({
 
-    arvo <- lataa_viimeisin_fingrid("reaali kokonaiskulutus")
-
     shinydashboard::valueBox(
-      paste0(tuhaterotin(round(arvo)), " MW"),
+      paste0(tuhaterotin(round(uusin_kulutus)), " MW"),
       "Sähkön reaaliaikainen kokonaiskulutus")
 
   })
 
   output$kokonaistuotanto <- shinydashboard::renderValueBox({
 
-    arvo <- lataa_viimeisin_fingrid("reaali kokonaistuotanto")
-
     shinydashboard::valueBox(
-      paste0(tuhaterotin(round(arvo)), " MW"),
+      paste0(tuhaterotin(round(uusin_tuotanto)), " MW"),
       "Sähkön reaaliaikainen kokonaistuotanto")
 
   })
 
   output$tuulisuhde <- shinydashboard::renderValueBox({
-    osuus <- lataa_viimeisin_fingrid("reaali tuulivoima") / lataa_viimeisin_fingrid("reaali kokonaistuotanto")
+    osuus <- uusin_tuuli/uusin_tuotanto
 
     shinydashboard::valueBox(
       prosenttierotin(round(osuus,3)),
       "Tuulivoiman osuus tämänhetkisestä sähköntuotannosta"
       )
+  })
 
+  output$muutoskulutus <- shinydashboard::renderValueBox({
 
+    kulutus_eilen <- vuorokausi_sitten %>% select(kulutus) %>% pull()
+
+    value <- (uusin_kulutus-kulutus_eilen)/kulutus_eilen
+
+    etumerkki <- ifelse(value > 0, "+", "")
+
+    shinydashboard::valueBox(
+      paste0(etumerkki,tuhaterotin(prosenttierotin(round(value,3)))),
+      "Muutos sähkön kokonaiskulutuksessa viimeisen 24 tunnin aikana")
 
   })
 
+  output$muutostuotanto <- shinydashboard::renderValueBox({
 
+    tuotanto_eilen <- vuorokausi_sitten %>% select(tuotanto) %>% pull()
+    value <- (uusin_tuotanto-tuotanto_eilen)/tuotanto_eilen
+
+    etumerkki <- ifelse(value > 0, "+", "")
+
+    shinydashboard::valueBox(
+      paste0(etumerkki,tuhaterotin(prosenttierotin(round(value,3)))),
+      "Muutos sähkön kokonaistuotannossa viimeisen 24 tunnin aikana")
+
+  })
+
+  output$nettovienti <- shinydashboard::renderValueBox({
+
+    teksti <- ifelse(uusin_vienti > 0,
+                     "Suomesta viedään sähköä",
+                     "Suomeen tuodaan sähköä")
+
+    shinydashboard::valueBox(
+      paste0(tuhaterotin(round(abs(uusin_vienti)))," MW"),
+      teksti)
+
+  })
   ## desiili sivu ---------------------------------------
   output$sopmaarat <- shinydashboard::renderValueBox({
 
@@ -560,6 +613,28 @@ server <- function(input, output, session) {
       scale_x_date(name = NULL,
                    label = formatoi_kuukaudet_plot) +
       coord_cartesian(ylim = c(0,max(data$sahkonkul)))
+  })
+
+  output$viikkoplot <- renderPlot({
+
+    viikko_data_fd %>%
+      pivot_longer(-time) %>%
+      ggplot(aes(x = time,
+                 y = value,
+                 colour = name,
+                 group = name)) +
+      geom_line(size = 1.5)+
+      scale_x_datetime(breaks = "1 day",
+                       date_labels = "%d.%m.")+
+      scale_color_manual(
+        name = NULL,
+        labels = c("Kokonaiskulutus",
+                   "Tuotanto"),
+        values = c("#393594","#721d41") )+
+      theme_light() +
+      labs(x = NULL, y = 'MW')+
+      theme(legend.position = 'bottom')
+
   })
 
   output$tausta <- renderPlot({

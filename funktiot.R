@@ -67,7 +67,8 @@ fingrid_sanakirja <- function(){
   return(
     c("reaali kokonaistuotanto" = 192,
       "reaali tuulivoima" = 181,
-      "reaali kokonaiskulutus" = 193)
+      "reaali kokonaiskulutus" = 193,
+      "reaali vienti" = 194)
   )
 }
 
@@ -84,15 +85,40 @@ lataa_viimeisin_fingrid <- function(arvo){
   return(ota_yhteys_fingrid_api(path) %>% select(value) %>% pull())
 }
 
-lataa_aikasarja_fingrid <- function(arvo, alku, loppu){
-  return(NULL)
+lataa_aikasarja_fingrid <- function(arvo,
+                                    alku = Sys.time()-lubridate::weeks(1),
+                                    loppu = Sys.time()){
+  arvot <- fingrid_sanakirja()
+
+  if(!arvo %in% names(arvot)){
+    stop("Syötä oikea arvo")
+  }
+
+  variableID <- arvot[arvo]
+  alku <- format(alku, "%Y-%m-%dT%H:%M:%SZ")
+  loppu <- format(loppu, "%Y-%m-%dT%H:%M:%SZ")
+  path <- paste0("https://api.fingrid.fi/v1/variable/",
+                 variableID,"/events/json?start_time=",alku,"&end_time=",loppu)
+
+  return(ota_yhteys_fingrid_api(path))
+
 }
 
-  ota_yhteys_fingrid_api <- function(url){
+lataa_viikko_fingridistä <- function(){
+  lataa_aikasarja_fingrid("reaali kokonaiskulutus") %>%
+    rename(kulutus = value) %>%
+    left_join(
+      lataa_aikasarja_fingrid("reaali kokonaistuotanto") %>%
+        rename(tuotanto = value)
+    )
+}
+
+ota_yhteys_fingrid_api <- function(url){
 
     if (!exists(api_key)) {
 
-      api_key <- feather::read_feather('rsconnect/fingrid_api.feather') %>% pull()
+      api_key <- feather::read_feather('rsconnect/fingrid_api.feather') %>%
+        pull()
 
     }
 
