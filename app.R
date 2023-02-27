@@ -6,6 +6,8 @@ library(ggplot2, warn.conflicts = F)
 library(markdown, warn.conflicts = F)
 library(lubridate, warn.conflicts = F)
 library(gghighlight, warn.conflicts = F)
+library(httr, warn.conflicts = F)
+library(jsonlite, warn.conflicts = F)
 
 source("funktiot.R", encoding = 'UTF-8')
 
@@ -52,10 +54,15 @@ ui <- navbarPage(
     tags$style(
       HTML("
         .navbar-nav > li > a, .navbar-brand {
-                   padding-top:5px !important;
+                   padding-top:15px !important;
                    padding-bottom:0 !important;
                    height: 55px;
         }
+        .navbar-brand {
+                   margin-top: -10px;
+                   margin-bottom: 0;
+        }
+
         .navbar {min-height:45px !important;}
         "
         )
@@ -67,12 +74,57 @@ ui <- navbarPage(
       windowTitle = "Datahuone",
 
 
-# sähkö jutut ---------------------------
+
+
+  tabPanel(
+
+    # Etusivu -----------------------------------------------
+    title = "Etusivu",
+    fluidPage(
+      fluidRow(
+        column(
+          h1('VATT Datahuone'),
+
+          p("Tervetuloa VATT Datahuoneen Shiny-appiin! Alla esittelyt lyhyesti jokaisen sivun sisältämistä tiedoista. Tämä auttaa sinua saamaan paremman käsityksen sovelluksen tarjoamista mahdollisuuksista ja hyödyntämään sitä tehokkaasti."),
+          h2("Kotitalouksien sähkönkulutus - Fingrid Datahubin tilastotietojen tarkastelu"),
+          width = 10)),
+      fluidRow(
+        column(
+          p("Täältä voit tutkia Suomen kotitalouksien sähkönkäyttöä Fingrid Datahubin tilastotietojen avulla, jotka on yhdistetty Tilastokeskuksen rekisteriaineistoihin. Sivulla Reaaliaikainen sähkönkäyttötilanne on mahdollista nähdä reaaliaikaisia tioetoja "),
+
+          p("Sivustollamme on mahdollista tarkastella Suomen kotitalouksien sähkönkäyttöä eri tarkastelutasoilla. Sivulla Kotitalouksien kokonaiskulutuksen trendit voi tarkastella eri maantieteellisten alueiden, kokonaissähkönkulutusta sekä per henkilökulutusta."),
+
+          p("Sivulla Sosioekonomisten muuttujien vaikutus voi tarkastella erilaisten sosioekonomisten muuttujien vaikutusta sähkönkulutukseen. Näihin muuttujiin kuuluvat esimerkiksi asuntokuntien tulotaso, asumismuoto ja koko. Tämä tarkastelutapa auttaa ymmärtämään, mitkä tekijät vaikuttavat eniten sähkönkulutukseen ja miten ne korreloivat keskenään."),
+
+          p("Kolmannella sivulla Kuntakohtainen tarkastelu on mahdollista tarkastella asuinkuntien mukaan. Tällä sivulla voit tarkistaa, miten oman asuntokuntasi sähkönkulutus vertautuu muihin asuinkuntasi asuntokuntiin. Tämä antaa hyvän käsityksen siitä, millä tasolla oma sähkönkulutus suhteutuu paikalliseen keskiarvoon ja millaisia erotuksia on eri kuntien välillä."),
+          p("Tavoitteenamme on tarjota käyttäjille mahdollisimman monipuolinen ja kattava näkymä Suomen kotitalouksien sähkönkulutukseen. Tiedot perustuvat Fingrid Datahubin tilastotietoihin, joita olemme yhdistäneet Tilastokeskuksen rekisteriaineistoihin. Toivomme, että sivustomme auttaa käyttäjiä ymmärtämään paremmin sähkönkulutuksen jakautumista ja siihen vaikuttavia tekijöitä eri tarkastelutasoilla."),
+          p("Huomioithan, että sivustomme kehitys on edelleen käynnissä ja jos havaitset ongelmia tai huomaat virheitä, otathan yhteyttä sähköpostiosoitteeseen theo.blauberg@vatt.fi tai voit vaihtoehtoisesti luoda bugiraportin",
+            tags$a( href ='https://github.com/bbtheo/Shiny_app_datahuone', 'GitHub-sivuillemme.'),"Kiitos yhteistyöstä!"),
+
+          width = 10))
+      )
+    ),
+
+  # sähköjutut ---------------------------
   navbarMenu(
-    title = "Sähkönkulutus",
+    title = "Kotitalouksien sähkönkulutus",
+
+    tabPanel(
+      title = "Reaaliaikainen sähkönkäyttötilanne",
+      fluidPage(
+        fluidRow(
+          h1("Reaaliaikainen sähkönkäyttötilanne")
+        ),
+        fluidRow(
+          valueBoxOutput("kokonaiskulutus", width = 4),
+          valueBoxOutput("kokonaistuotanto", width = 4),
+          valueBoxOutput("tuulisuhde", width = 4)
+        )
+      )
+    ),
     ### aikasarjapaneeli ----------------------
     tabPanel(
-      title = "Kokonaiskulutus",
+      title = "Kotitalouksien kokonaiskulutuksen trendit",
       sidebarLayout(
         sidebarPanel(
           dateRangeInput(
@@ -88,10 +140,10 @@ ui <- navbarPage(
           selectInput(
             inputId = 'tarktaso',
             label = "Tarkastelutaso",
-            choices = c('Koko Suomi',
+            choices = c('Koko maa',
                         "Maakunnittain",
                         "Kunnittain"),
-            selected = 'Koko Suomi'
+            selected = 'Koko maa'
           ),
           selectInput(
             inputId = 'valitut',
@@ -109,6 +161,7 @@ ui <- navbarPage(
           )
         ),
         mainPanel(
+          fluidRow(h1("Sähkönkäytön trendit Suomessa")),
           fluidRow(
             column(width = 1),
             column(plotOutput("aikasarjaplot"), width = 10),
@@ -119,10 +172,9 @@ ui <- navbarPage(
       ),
     ## desiilipaneeli --------------------------------
     tabPanel(
-      title = "Tulokymmenyksittäin",
+      title = "Sosioekonomisten muuttujien vaikutus",
       sidebarLayout(
           sidebarPanel(
-            "Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon.",
             selectInput(
               inputId = 'kk',
               label = 'Tarkastelukuukausi',
@@ -151,7 +203,8 @@ ui <- navbarPage(
               inputId = 'locked_scale',
               label = 'Lukitse kuvaajan y-akselin skaala',
               value = TRUE
-            )
+            ),
+            p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon.")
           ),
 
           mainPanel(
@@ -193,7 +246,7 @@ ui <- navbarPage(
       ),
  ## kuntapaneeli ------------------------
     tabPanel(
-      title = "Kunnittain",
+      title = "Kuntakohtainen tarkastelu",
       sidebarLayout(
         sidebarPanel(
           selectInput(
@@ -318,7 +371,7 @@ server <- function(input, output, session) {
   })
 
   observe({
-    if(input$tarktaso != 'Koko Suomi') {
+    if(input$tarktaso != 'Koko maa') {
       updateSelectInput(session,
                         'valitut',
                         choices = valintojen_valinnat())
@@ -362,6 +415,42 @@ server <- function(input, output, session) {
 
 
   # valueboxit -----------------------------
+
+  ## fingrid  -----------------------------
+  output$kokonaiskulutus <- shinydashboard::renderValueBox({
+
+    arvo <- lataa_viimeisin_fingrid("reaali kokonaiskulutus")
+
+    shinydashboard::valueBox(
+      paste0(tuhaterotin(round(arvo)), " MW"),
+      "Sähkön reaaliaikainen kokonaiskulutus")
+
+  })
+
+  output$kokonaistuotanto <- shinydashboard::renderValueBox({
+
+    arvo <- lataa_viimeisin_fingrid("reaali kokonaistuotanto")
+
+    shinydashboard::valueBox(
+      paste0(tuhaterotin(round(arvo)), " MW"),
+      "Sähkön reaaliaikainen kokonaistuotanto")
+
+  })
+
+  output$tuulisuhde <- shinydashboard::renderValueBox({
+    osuus <- lataa_viimeisin_fingrid("reaali tuulivoima") / lataa_viimeisin_fingrid("reaali kokonaistuotanto")
+
+    shinydashboard::valueBox(
+      prosenttierotin(round(osuus,3)),
+      "Tuulivoiman osuus tämänhetkisestä sähköntuotannosta"
+      )
+
+
+
+  })
+
+
+  ## desiili sivu ---------------------------------------
   output$sopmaarat <- shinydashboard::renderValueBox({
 
     sum <- sum(boxplotit_sopimukset[[input$kk]]$n)
@@ -399,9 +488,11 @@ server <- function(input, output, session) {
       select(y_mean) %>%
       pull()
 
-    shinydashboard::valueBox(tuhaterotin(round(values[2]/values[1], 2)),
-                             "kertaa suurempi keskiarvokulutus 10. desiilillä kuin 1. desiilillä")
-  })
+    shinydashboard::valueBox(tuhaterotin(round(values[2]/values[1],2)), "Korkeatuloisin desiili kuluttaa kertaa enemmän sähkkön kuin pienituloisin desiili.")
+    })
+
+
+  ## kuntasivu -------------------------------------------------------
 
   output$kulutus_desiili <- shinydashboard::renderValueBox({
     value <- mean(kunta_data()[input$kunt_kk] <= input$kwh_kulutus)
