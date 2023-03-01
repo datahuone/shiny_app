@@ -67,8 +67,18 @@ fingrid_sanakirja <- function(){
   return(
     c("reaali kokonaistuotanto" = 192,
       "reaali tuulivoima" = 181,
+      "reaali vesivoima" = 191,
+      "reaali tehoreservi" = 183,
+      "reaali yhteistuotanto kaukolämpö" = 201,
+      "reaali yhteistuotanto teollisuus" = 202,
+      "reaali pientuotanto" = 205,
+      "reaali lauhdevoimatuotanto" = 189,
+      "reaali ydinvoima" = 188,
       "reaali kokonaiskulutus" = 193,
-      "reaali vienti" = 194)
+      "reaali vienti" = 194,
+      "kokonaistuontanto" = 74,
+      "tuulivoima" = 75
+      )
   )
 }
 
@@ -87,7 +97,8 @@ lataa_viimeisin_fingrid <- function(arvo){
 
 lataa_aikasarja_fingrid <- function(arvo,
                                     alku = Sys.time()-lubridate::weeks(1),
-                                    loppu = Sys.time()){
+                                    loppu = Sys.time(),
+                                    muuta_nimi = NULL){
   arvot <- fingrid_sanakirja()
 
   if(!arvo %in% names(arvot)){
@@ -102,6 +113,7 @@ lataa_aikasarja_fingrid <- function(arvo,
 
   return(ota_yhteys_fingrid_api(path))
 
+
 }
 
 lataa_viikko_fingridistä <- function(){
@@ -115,9 +127,9 @@ lataa_viikko_fingridistä <- function(){
 
 ota_yhteys_fingrid_api <- function(url){
 
-    if (!exists(api_key)) {
+    if (!exists('api_key')) {
 
-      api_key <- feather::read_feather('rsconnect/fingrid_api.feather') %>%
+      api_key <- feather::read_feather('fingrid_api.feather') %>%
         pull()
 
     }
@@ -125,9 +137,11 @@ ota_yhteys_fingrid_api <- function(url){
     res = GET(url,
               query = list(`x-api-key` = api_key))
 
-    return(as_tibble(fromJSON(rawToChar(res$content))) %>%
+    result_tibble <- as_tibble(fromJSON(rawToChar(res$content)))
+
+    return(result_tibble %>%
              select(-end_time) %>%
              rename(time = start_time))
 
 
-  }
+}

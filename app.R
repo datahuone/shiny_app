@@ -11,25 +11,30 @@ library(jsonlite, warn.conflicts = F)
 
 source("funktiot.R", encoding = 'UTF-8')
 
-Sys.setlocale("LC_ALL", "Finnish_Finland.1252")
+#Sys.setlocale("LC_ALL", "Finnish_Finland.1252")
 
 ### ladataan data ----------------
-kuukaudet <- feather::read_feather(
-  "data/kuukaudet_saatavilla.feather")$kuukaudet
+kuukaudet <- feather::read_feather("data/kuukaudet_saatavilla.feather")$kuukaudet
 
-#ladataan sopimusdata
-boxplotit_sopimukset <- lataa_data("sopimuksittain_boxplotit",
-                                           kuukaudet)
+#ladataan boxplot datat
+boxplotit_sopimukset <- lataa_data("asuntokunnittain_sopimustenlkm_boxplotit",kuukaudet)
+boxplotit_asuntokunnat <- lataa_data("asuntokunnittain_boxplotit",kuukaudet)
+boxplotit_maaraik <- lataa_data("asuntokunnittain_maaraaik_boxplotit",kuukaudet)
+boxplotit_lammitys <- lataa_data("asuntokunnittain_lammitysmuoto_boxplotit", kuukaudet)
+boxplotit_taajama <- lataa_data("asuntokunnittain_taajama_boxplotit", kuukaudet)
+boxplotit_kerrostalo <- lataa_data("asuntokunnittain_kerrostalo_boxplotit", kuukaudet)
+boxplotit_askoko <- lataa_data("asuntokunnittain_askoko_boxplotit", kuukaudet)
 
-#ladatataan asuntokuntadata
-boxplotit_asuntokunnat <- lataa_data("asuntokunnittain_boxplotit",
-                                             kuukaudet)
+boxplotlista <- list(
+  "-" = boxplotit_asuntokunnat,
+  "sopimuksien lukumäärä" = boxplotit_sopimukset,
+  "määräaikaiset sopimukset"= boxplotit_maaraik,
+  "lämmitysmuodot" = boxplotit_lammitys,
+  "Asuu taajama-alueella" = boxplotit_taajama,
+  "Asuu kerrostalossa" = boxplotit_kerrostalo,
+  "Asuntokunnan koko"= boxplotit_askoko
+)
 
-boxplotit_maaraik <- lataa_data("asuntokunnittain_maaraaik_boxplotit",
-                                        kuukaudet)
-
-boxplotit_lammitys <- lataa_data("asuntokunnittain_lammitysmuoto_boxplotit",
-                                         kuukaudet)
 
 kunta_kvantiilit <- lataa_data("kunta_kvantiilit",
                                kuukaudet)
@@ -48,7 +53,7 @@ uusin_vienti <- lataa_viimeisin_fingrid("reaali vienti")
 
 viikko_data_fd <- lataa_viikko_fingridistä() %>%
   arrange(desc(time)) %>%
-  slice(which(row_number() %% 20 == 1)) %>%
+  slice(which(row_number() %% 20 == 1)) %>% #otetaan vain yksi havainto joka tunnilta
   mutate(time = lubridate::ymd_hms(time)) %>%
   mutate(time = lubridate::floor_date(time, unit = "hours"))
 
@@ -101,21 +106,25 @@ ui <- navbarPage(
         column(
           h1('VATT Datahuone'),
 
-          p("Tervetuloa VATT Datahuoneen Shiny-appiin! Alla esittelyt lyhyesti jokaisen sivun sisältämistä tiedoista. Tämä auttaa sinua saamaan paremman käsityksen sovelluksen tarjoamista mahdollisuuksista ja hyödyntämään sitä tehokkaasti."),
+          p("Tervetuloa VATT Datahuoneen Shiny-appiin! Alla esittelyt lyhyesti jokaisen osion sisältämistä tiedoista. Tämä auttaa sinua saamaan paremman käsityksen sovelluksen tarjoamista mahdollisuuksista ja hyödyntämään sitä tehokkaasti."),
           h2("Kotitalouksien sähkönkulutus - Fingrid Datahubin tilastotietojen tarkastelu"),
           width = 10)),
       fluidRow(
         column(
-          p("Täältä voit tutkia Suomen kotitalouksien sähkönkäyttöä Fingrid Datahubin tilastotietojen avulla, jotka on yhdistetty Tilastokeskuksen rekisteriaineistoihin. Sivulla Reaaliaikainen sähkönkäyttötilanne on mahdollista nähdä reaaliaikaisia tioetoja, jotka on peräisin FIngridin avoimen datan aplvelusta."),
+          p("Täältä voit tarkastella Suomalaisten sähkönkäyttöä Fingrid Datahubin tilastotietojen avulla, jotka on yhdistetty Tilastokeskuksen rekisteriaineistoihin."),
 
-          p("Sivustollamme on mahdollista tarkastella Suomen kotitalouksien sähkönkäyttöä eri tarkastelutasoilla. Sivulla Kotitalouksien kokonaiskulutuksen trendit voi tarkastella eri maantieteellisten alueiden, kokonaissähkönkulutusta sekä kulutusta per henkilö."),
+          p("Osiossa Reaaliaikainen sähkönkäyttötilanne on reaaliaikaisia tietoja sähkön käytöstä sekä tuotannosta. Nämä tiedot ovat  Fingridin avoin data-verkkopalvelusta. Näihin reaaliaikaisiin lukuihin kuuluvat kaikki sähkönkäyttäjät."),
 
-          p("Sivulla Sosioekonomisten muuttujien vaikutus voi tarkastella erilaisten sosioekonomisten muuttujien vaikutusta sähkönkulutukseen. Näihin muuttujiin kuuluvat esimerkiksi asuntokuntien tulotaso, asumismuoto ja koko. Tämä tarkastelutapa auttaa ymmärtämään, mitkä tekijät vaikuttavat eniten sähkönkulutukseen ja miten ne korreloivat keskenään."),
+          p("Suomen kotitalouksien sähkönkäyttöä on mahdollista tarkastella eri tarkastelutasoilla. Osiossa Kotitalouksien kokonaiskulutuksen trendit tietoja esitellään maantieteellisten alueiden kokonaissähkönkulutusta sekä per henkilö sähkönkulutusta."),
 
-          p("Kolmannella sivulla Kuntakohtainen tarkastelu on mahdollista tarkastella asuinkuntien mukaan. Tällä sivulla voit tarkistaa, miten oman asuntokuntasi sähkönkulutus vertautuu muihin asuinkuntasi asuntokuntiin. Tämä antaa hyvän käsityksen siitä, millä tasolla oma sähkönkulutus suhteutuu paikalliseen keskiarvoon ja millaisia erotuksia on eri kuntien välillä."),
-          p("Tavoitteenamme on tarjota käyttäjille mahdollisimman monipuolinen ja kattava näkymä Suomen kotitalouksien sähkönkulutukseen. Tiedot perustuvat Fingrid Datahubin tilastotietoihin, joita olemme yhdistäneet Tilastokeskuksen rekisteriaineistoihin. Toivomme, että sivustomme auttaa käyttäjiä ymmärtämään paremmin sähkönkulutuksen jakautumista ja siihen vaikuttavia tekijöitä eri tarkastelutasoilla."),
+          p("Osiossa Sosioekonomisten muuttujien vaikutus esitellään sosioekonomisten muuttujien vaikutusta sähkönkulutukseen. Näitä muuttujia ovat esimerkiksi asuntokuntien tulotaso, asumismuoto sekä koko."),
+
+          p("Kuntakohtainen tarkastelu nimisessä osiossa voit tarkistaa, miten oman asuntokuntasi sähkönkulutus vertautuu muihin asuinkuntasi asuntokuntiin. Tämä antaa hyvän käsityksen siitä, millä tasolla oma sähkönkulutus suhteutuu paikalliseen keskiarvoon ja millaisia erotuksia on eri kuntien välillä."),
+
+          p("Tavoitteemme on tarjota käyttäjille mahdollisimman monipuolinen ja kattava näkymä Suomen kotitalouksien sähkönkulutukseen. Tiedot perustuvat Fingrid Datahubin tilastotietoihin, joita olemme yhdistäneet Tilastokeskuksen rekisteriaineistoihin. Lisäksi näiden tietojen tueksi olemme kerrännet yhteen Toivomme, että sivustomme auttaa käyttäjiä ymmärtämään paremmin sähkönkulutuksen jakautumista ja siihen vaikuttavia tekijöitä eri tarkastelutasoilla."),
+
           p("Huomioithan, että sivustomme kehitys on edelleen käynnissä ja jos havaitset ongelmia tai huomaat virheitä, otathan yhteyttä sähköpostiosoitteeseen theo.blauberg@vatt.fi tai voit vaihtoehtoisesti luoda bugiraportin",
-            tags$a( href ='https://github.com/bbtheo/Shiny_app_datahuone', 'GitHub-sivuillemme.'),"Kiitos yhteistyöstä!"),
+            tags$a( href ='https://github.com/bbtheo/Shiny_app_datahuone', 'GitHub-sivuillemme.')),
 
           width = 10))
       )
@@ -144,6 +153,11 @@ ui <- navbarPage(
         fluidRow(h2("Sähkön kulutus sekä tuotanto viimeisen viikon aikana")),
         fluidRow(
           column(plotOutput("viikkoplot"), width = 10)
+        ),
+        fluidRow(
+          column(
+            p("Lähde: Fingridin avoin data-verkkopalvelu"),width = 4
+          )
         )
       )
     ),
@@ -208,9 +222,13 @@ ui <- navbarPage(
             selectInput(
               inputId = 'soptyyp',
               label = 'Tulokymmenyksien jaottelu',
-              choices = c("-",
+              choices = c("-" ,
+                          "sopimuksien lukumäärä" ,
                           "määräaikaiset sopimukset",
-                          "lämmitysmuodot"),
+                          "lämmitysmuodot" ,
+                          "Asuu taajama-alueella" ,
+                          "Asuu kerrostalossa" ,
+                          "Asuntokunnan koko"),
               selected = "-"
               ),
             checkboxInput(
@@ -251,11 +269,11 @@ ui <- navbarPage(
               valueBoxOutput("dessuhde", width = 4)
               ),
             fluidRow(
-              h3(textOutput("taustaotsikko"))
-              ),
-            fluidRow(
               downloadButton("download", "Lataa csv")
             ),
+            fluidRow(
+              h3(textOutput("taustaotsikko"))
+              ),
             fluidRow(
               column(width = 1),
               column(
@@ -337,20 +355,7 @@ server <- function(input, output, session) {
   # Reaktiiviset datasetit ----------------------
 
   boxplot_data <- reactive({
-    if (input$soptyyp == "sopimukset") {
-      # jos halutaan sopimukset palautetaan sopimusdata
-      return(boxplotit_sopimukset[[input$kk]])
-    }
-
-    else if (input$soptyyp == "määräaikaiset sopimukset") {
-      return(boxplotit_maaraik[[input$kk]])
-    }
-
-    else if (input$soptyyp == "lämmitysmuodot") {
-      return(boxplotit_lammitys[[input$kk]])
-    }
-
-    return(boxplotit_asuntokunnat[[input$kk]])
+    return(boxplotlista[[input$soptyyp]][[input$kk]])
   })
 
 
@@ -534,8 +539,8 @@ server <- function(input, output, session) {
 
   output$dessuhde <- shinydashboard::renderValueBox({
     values <- boxplotit_asuntokunnat[[input$kk]] %>%
-      filter(desiili_new2 %in% c(1,10)) %>%
-      group_by(desiili_new2) %>%
+      filter(desiili %in% c(1,10)) %>%
+      group_by(desiili) %>%
       summarise(y_mean = mean(y_mean)) %>%
       ungroup() %>%
       select(y_mean) %>%
@@ -577,6 +582,7 @@ server <- function(input, output, session) {
 
   # Plotit ----------------------------------------
 
+  ## aikasarjadata --------------------------------------
   output$aikasarjaplot <- renderPlot({
 
     data <- aikasarja_data()
@@ -637,15 +643,17 @@ server <- function(input, output, session) {
 
   })
 
+  ## Tausta kuvaajat --------------------------------------------
+
   output$tausta <- renderPlot({
 
     if (input$soptyyp == 'määräaikaiset sopimukset') {
 
       boxplotit_maaraik[[input$kk]] %>%
         ggplot(aes(
-          x = factor(desiili_new2),
+          x = factor(desiili),
           y = n,
-          fill = factor(IsFixedTermAgreement)))+
+          fill = factor(is_fixed_term_agreement)))+
         geom_col(position = 'fill')+
         scale_fill_manual(
           name = "Määräaikainen sähkösopimus",
@@ -666,9 +674,9 @@ server <- function(input, output, session) {
 
       boxplotit_lammitys[[input$kk]] %>%
         ggplot(aes(
-          x = factor(desiili_new2),
+          x = factor(desiili),
           y = n,
-          fill = IsHeatingDependentOnElectricity))+
+          fill = is_heating_dependent_on_electricity))+
         geom_col(position = 'fill')+
         scale_fill_manual(
           name = "Lämmitys riippuvainen sähköstä",
@@ -684,7 +692,100 @@ server <- function(input, output, session) {
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank())+
         scale_y_continuous(label = prosenttierotin)
-      }
+
+    } else if (input$soptyyp == 'sopimuksien lukumäärä') {
+
+      boxplotlista[[input$soptyyp]][[input$kk]] %>%
+        ggplot(aes(
+          x = factor(desiili),
+          y = n,
+          fill = yli_1_sopimus))  +
+        geom_col(position = 'fill') +
+        scale_fill_manual(
+          name = "Asuntokunnalla solmittu yli yksi sopimus",
+          labels = c("Ei", "Kyllä"),
+          values = c('#363197', '#F16c13')
+        )+
+        labs(x = 'Tulokymmennys',
+             y = 'Osuus asuntokunnista')+
+        theme_linedraw()+
+        theme(
+          legend.position = 'bottom',
+          panel.border = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank())+
+        scale_y_continuous(label = prosenttierotin)
+
+    } else if (input$soptyyp == 'Asuu taajama-alueella') {
+
+      boxplotlista[[input$soptyyp]][[input$kk]] %>%
+        ggplot(aes(
+          x = factor(desiili),
+          y = n,
+          fill = factor(asuu_taajamassa)))  +
+        geom_col(position = 'fill') +
+        scale_fill_manual(
+          name = "Asuntokunta asuu taajama-alueella",
+          labels = c("Ei", "Kyllä"),
+          values = c('#363197', '#F16c13')
+        )+
+        labs(x = 'Tulokymmennys',
+             y = 'Osuus asuntokunnista')+
+        theme_linedraw()+
+        theme(
+          legend.position = 'bottom',
+          panel.border = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank())+
+        scale_y_continuous(label = prosenttierotin)
+    } else if (input$soptyyp == 'Asuu kerrostalossa') {
+
+      boxplotlista[[input$soptyyp]][[input$kk]] %>%
+        ggplot(aes(
+          x = factor(desiili),
+          y = n,
+          fill = asuu_kerrostalossa ))  +
+        geom_col(position = 'fill') +
+        scale_fill_manual(
+          name = "Asuntokunta asuu kerrostalossa",
+          labels = c("Ei", "Kyllä"),
+          values = c('#363197', '#F16c13')
+        )+
+        labs(x = 'Tulokymmennys',
+             y = 'Osuus asuntokunnista')+
+        theme_linedraw()+
+        theme(
+          legend.position = 'bottom',
+          panel.border = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank())+
+        scale_y_continuous(label = prosenttierotin)
+    } else if (input$soptyyp == 'Asuntokunnan koko') {
+
+      boxplotlista[[input$soptyyp]][[input$kk]] %>%
+        ggplot(aes(
+          x = factor(desiili),
+          y = n,
+          fill = yli_1_akkoko))  +
+        geom_col(position = 'fill') +
+        scale_fill_manual(
+          name = "Asuntokunnan koko yli yksi henkilö",
+          labels = c("Ei", "Kyllä"),
+          values = c('#363197', '#F16c13')
+        )+
+        labs(x = 'Tulokymmennys',
+             y = 'Osuus asuntokunnista')+
+        theme_linedraw()+
+        theme(
+          legend.position = 'bottom',
+          panel.border = element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank())+
+        scale_y_continuous(label = prosenttierotin)
+    }
+
+
+
     })
 
   output$kuntakuvaaja <- renderPlot({
@@ -717,16 +818,17 @@ server <- function(input, output, session) {
       scale_fill_viridis_d()
   })
 
+## boxplotit ----------------------------------------
   output$boxplot <- renderPlot({
 
 
-    ### lämmitysboxplot ----------------------------------
-    if (input$soptyyp == 'lämmitysmuodot') {
 
+    if (input$soptyyp == 'lämmitysmuodot') {
+### lämmitysboxplot ----------------------------------
       plot <- boxplot_data() %>%
         ggplot(
           aes(
-            x = factor(desiili_new2)
+            x = factor(desiili)
           )
         )
 
@@ -751,7 +853,7 @@ server <- function(input, output, session) {
               middle = y_median,
               upper = y_75,
               max = y_75,
-              fill = IsHeatingDependentOnElectricity
+              fill = is_heating_dependent_on_electricity
             ),
             colour = 'black',
             width = 0.75,
@@ -764,7 +866,7 @@ server <- function(input, output, session) {
         plot <- plot + geom_point(
           aes(
             y = y_mean,
-            x = factor(desiili_new2),
+            x = factor(desiili),
             alpha = 'Keskiarvo'
           ),
           position = position_nudge(
@@ -774,7 +876,7 @@ server <- function(input, output, session) {
       }
 
       if(input$locked_scale){
-        max_y <- max(sapply(boxplotit_lammitys, function(x) max(x$y_max)))
+        max_y <- max(sapply(boxplotit_taajama, function(x) max(x$y_max)))
         plot <- plot + coord_cartesian(ylim = c(0,max_y))
       }
 
@@ -806,15 +908,13 @@ server <- function(input, output, session) {
           plot.caption = element_text(hjust = 0)
         )
 
-    }
-
-    else if (input$soptyyp == 'määräaikaiset sopimukset') {
+    } else if (input$soptyyp == 'määräaikaiset sopimukset') {
 
 ### määräaikaisboxplot --------------------------
       plot <- boxplot_data() %>%
         ggplot(
           aes(
-            x = factor(desiili_new2)
+            x = factor(desiili)
           )
         )
 
@@ -840,7 +940,7 @@ server <- function(input, output, session) {
               middle = y_median,
               upper = y_75,
               max = y_75,
-              fill = factor(IsFixedTermAgreement)
+              fill = factor(is_fixed_term_agreement)
             ),
             colour = 'black',
             width = 0.75,
@@ -853,7 +953,7 @@ server <- function(input, output, session) {
         plot <- plot + geom_point(
           aes(
             y = y_mean,
-            x = factor(desiili_new2),
+            x = factor(desiili),
             alpha = 'Keskiarvo'
           ),
           position = position_nudge(
@@ -863,7 +963,7 @@ server <- function(input, output, session) {
       }
 
       if(input$locked_scale){
-        max_y <- max(sapply(boxplotit_lammitys, function(x) max(x$y_max)))
+        max_y <- max(sapply(boxplotit_taajama, function(x) max(x$y_max)))
         plot <- plot + coord_cartesian(ylim = c(0,max_y))
       }
 
@@ -895,12 +995,352 @@ server <- function(input, output, session) {
         )
 
 
+    } else if (input$soptyyp == "sopimuksien lukumäärä") {
+
+### sopimusten lukumäärä ------------------------
+      plot <- boxplot_data() %>%
+        ggplot(
+          aes(
+            x = factor(desiili)
+          )
+        )
+
+      if(input$error){
+        plot <- plot +
+          geom_errorbar(
+            aes(
+              ymin = y_min,
+              ymax = y_max,
+              colour = 'black'),
+            position = position_nudge(x = rep(c(-0.2,0.2),10)),
+            width = 0.2)
+      }
+
+
+      plot <- plot +
+        geom_boxplot(
+          aes(
+            min = y_25,
+            lower = y_25,
+            middle = y_median,
+            upper = y_75,
+            max = y_75,
+            fill = factor(yli_1_sopimus)
+          ),
+          colour = 'black',
+          width = 0.75,
+          stat = 'identity'
+        )
+
+
+
+      if(input$mean){
+        plot <- plot + geom_point(
+          aes(
+            y = y_mean,
+            x = factor(desiili),
+            alpha = 'Keskiarvo'
+          ),
+          position = position_nudge(
+            x = rep(c(-0.2,0.2),10)
+          ),
+        )
+      }
+
+      if(input$locked_scale){
+        max_y <- max(sapply(boxplotit_taajama, function(x) max(x$y_max)))
+        plot <- plot + coord_cartesian(ylim = c(0,max_y))
+      }
+
+      plot +
+        scale_y_continuous(name = "Sähkönkulutus (kWh)",
+                           labels = tuhaterotin) +
+        scale_x_discrete(name = "Tulokymmenys")+
+        scale_fill_manual(
+          name = '25 % - mediaani- 75 %',
+          label = c('Yksi sopimus','Kaksi tai useampia'),
+          values = c('#F16C13',"#234721")
+        )+
+        scale_colour_manual(
+          name = NULL,
+          label = '5 % - 95 %',
+          values = 'black'
+        )+
+        scale_alpha_manual(
+          name = NULL,
+          values = 1
+        )+
+        theme_linedraw()+
+        theme(
+          legend.position = 'bottom',
+          panel.border =element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          plot.caption = element_text(hjust = 0)
+        )
+
+
+    }else if (input$soptyyp == "Asuu kerrostalossa") {
+
+      ### Asuu kerrostalossa ------------------------
+      plot <- boxplot_data() %>%
+        ggplot(
+          aes(
+            x = factor(desiili)
+          )
+        )
+
+      if(input$error){
+        plot <- plot +
+          geom_errorbar(
+            aes(
+              ymin = y_min,
+              ymax = y_max,
+              colour = 'black'),
+            position = position_nudge(x = rep(c(-0.2,0.2),10)),
+            width = 0.2)
+      }
+
+
+      plot <- plot +
+        geom_boxplot(
+          aes(
+            min = y_25,
+            lower = y_25,
+            middle = y_median,
+            upper = y_75,
+            max = y_75,
+            fill = factor(asuu_kerrostalossa )
+          ),
+          colour = 'black',
+          width = 0.75,
+          stat = 'identity'
+        )
+
+
+
+      if(input$mean){
+        plot <- plot + geom_point(
+          aes(
+            y = y_mean,
+            x = factor(desiili),
+            alpha = 'Keskiarvo'
+          ),
+          position = position_nudge(
+            x = rep(c(-0.2,0.2),10)
+          ),
+        )
+      }
+
+      if(input$locked_scale){
+        max_y <- max(sapply(boxplotit_taajama, function(x) max(x$y_max)))
+        plot <- plot + coord_cartesian(ylim = c(0,max_y))
+      }
+
+      plot +
+        scale_y_continuous(name = "Sähkönkulutus (kWh)",
+                           labels = tuhaterotin) +
+        scale_x_discrete(name = "Tulokymmenys")+
+        scale_fill_manual(
+          name = '25 % - mediaani- 75 %',
+          label = c('Ei asu kerrostalossa','Asuu kerrostalossa'),
+          values = c('#F16C13',"#234721")
+        )+
+        scale_colour_manual(
+          name = NULL,
+          label = '5 % - 95 %',
+          values = 'black'
+        )+
+        scale_alpha_manual(
+          name = NULL,
+          values = 1
+        )+
+        theme_linedraw()+
+        theme(
+          legend.position = 'bottom',
+          panel.border =element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          plot.caption = element_text(hjust = 0)
+        )
+
+
+    }else if (input$soptyyp == "Asuu taajama-alueella") {
+
+      ### Taajamassa asuminen ------------------------
+      plot <- boxplot_data() %>%
+        ggplot(
+          aes(
+            x = factor(desiili)
+          )
+        )
+
+      if(input$error){
+        plot <- plot +
+          geom_errorbar(
+            aes(
+              ymin = y_min,
+              ymax = y_max,
+              colour = 'black'),
+            position = position_nudge(x = rep(c(-0.2,0.2),10)),
+            width = 0.2)
+      }
+
+
+      plot <- plot +
+        geom_boxplot(
+          aes(
+            min = y_25,
+            lower = y_25,
+            middle = y_median,
+            upper = y_75,
+            max = y_75,
+            fill = factor(asuu_taajamassa)
+          ),
+          colour = 'black',
+          width = 0.75,
+          stat = 'identity'
+        )
+
+
+
+      if(input$mean){
+        plot <- plot + geom_point(
+          aes(
+            y = y_mean,
+            x = factor(desiili),
+            alpha = 'Keskiarvo'
+          ),
+          position = position_nudge(
+            x = rep(c(-0.2,0.2),10)
+          ),
+        )
+      }
+
+      if(input$locked_scale){
+        max_y <- max(sapply(boxplotit_taajama, function(x) max(x$y_max)))
+        plot <- plot + coord_cartesian(ylim = c(0,max_y))
+      }
+
+      plot +
+        scale_y_continuous(name = "Sähkönkulutus (kWh)",
+                           labels = tuhaterotin) +
+        scale_x_discrete(name = "Tulokymmenys")+
+        scale_fill_manual(
+          name = '25 % - mediaani- 75 %',
+          label = c('Ei asu taajamassa','Asuu taajamassa'),
+          values = c('#F16C13',"#234721")
+        )+
+        scale_colour_manual(
+          name = NULL,
+          label = '5 % - 95 %',
+          values = 'black'
+        )+
+        scale_alpha_manual(
+          name = NULL,
+          values = 1
+        )+
+        theme_linedraw()+
+        theme(
+          legend.position = 'bottom',
+          panel.border =element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          plot.caption = element_text(hjust = 0)
+        )
+
+
+    }else if (input$soptyyp == "Asuntokunnan koko") {
+
+      ### Asuntokunnan koko ------------------------
+      plot <- boxplot_data() %>%
+        ggplot(
+          aes(
+            x = factor(desiili)
+          )
+        )
+
+      if(input$error){
+        plot <- plot +
+          geom_errorbar(
+            aes(
+              ymin = y_min,
+              ymax = y_max,
+              colour = 'black'),
+            position = position_nudge(x = rep(c(-0.2,0.2),10)),
+            width = 0.2)
+      }
+
+
+      plot <- plot +
+        geom_boxplot(
+          aes(
+            min = y_25,
+            lower = y_25,
+            middle = y_median,
+            upper = y_75,
+            max = y_75,
+            fill = factor(yli_1_akkoko)
+          ),
+          colour = 'black',
+          width = 0.75,
+          stat = 'identity'
+        )
+
+
+
+      if(input$mean){
+        plot <- plot + geom_point(
+          aes(
+            y = y_mean,
+            x = factor(desiili),
+            alpha = 'Keskiarvo'
+          ),
+          position = position_nudge(
+            x = rep(c(-0.2,0.2),10)
+          ),
+        )
+      }
+
+      if(input$locked_scale){
+        max_y <- max(sapply(boxplotit_taajama, function(x) max(x$y_max)))
+        plot <- plot + coord_cartesian(ylim = c(0,max_y))
+      }
+
+      plot +
+        scale_y_continuous(name = "Sähkönkulutus (kWh)",
+                           labels = tuhaterotin) +
+        scale_x_discrete(name = "Tulokymmenys")+
+        scale_fill_manual(
+          name = '25 % - mediaani- 75 %',
+          label = c('Yksi asukas','Kaksi tai useampia'),
+          values = c('#F16C13',"#234721")
+        )+
+        scale_colour_manual(
+          name = NULL,
+          label = '5 % - 95 %',
+          values = 'black'
+        )+
+        scale_alpha_manual(
+          name = NULL,
+          values = 1
+        )+
+        theme_linedraw()+
+        theme(
+          legend.position = 'bottom',
+          panel.border =element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          plot.caption = element_text(hjust = 0)
+        )
+
+
     } else {
 ### Normiboxplot ----------------------
     plot <- boxplot_data() %>%
       ggplot(
         aes(
-          x = factor(desiili_new2)
+          x = factor(desiili)
         )
       )
 
@@ -935,14 +1375,14 @@ server <- function(input, output, session) {
         plot <- plot + geom_point(
           aes(
             y = y_mean,
-            x = factor(desiili_new2),
+            x = factor(desiili),
             alpha = 'Keskiarvo'
           )
         )
       }
 
       if(input$locked_scale){
-          max_y <- max(sapply(boxplotit_lammitys, function(x) max(x$y_max)))
+          max_y <- max(sapply(boxplotit_taajama, function(x) max(x$y_max)))
           plot <- plot + coord_cartesian(ylim = c(0,max_y))
         }
 
@@ -975,6 +1415,8 @@ server <- function(input, output, session) {
     }
     })
 
+  # downloaderit ----------------------------------
+
   output$download <-downloadHandler(
     filename = function(){
       paste0("datahuone_fdh_",input$kk,".csv")
@@ -984,7 +1426,7 @@ server <- function(input, output, session) {
         rename(y_05 = y_min,
                y_95 = y_max,
                asuntokuntie_lkm = n,
-               tulokymmenys = desiili_new2)
+               tulokymmenys = desiili)
 
       if(!input$mean){
         data <- data %>%
