@@ -29,10 +29,10 @@ boxplotlista <- list(
   "-" = boxplotit_asuntokunnat,
   "sopimuksien lukumäärä" = boxplotit_sopimukset,
   "määräaikaiset sopimukset"= boxplotit_maaraik,
-  "lämmitysmuodot" = boxplotit_lammitys,
-  "Asuu taajama-alueella" = boxplotit_taajama,
-  "Asuu kerrostalossa" = boxplotit_kerrostalo,
-  "Asuntokunnan koko"= boxplotit_askoko
+  "lämmitys riippuvainen sähköstä" = boxplotit_lammitys,
+  "asuu taajama-alueella" = boxplotit_taajama,
+  "asuu kerrostalossa" = boxplotit_kerrostalo,
+  "asuntokunnan koko"= boxplotit_askoko
 )
 
 
@@ -134,33 +134,6 @@ ui <- navbarPage(
   navbarMenu(
     title = "Kotitalouksien sähkönkulutus",
 
-    tabPanel(
-      title = "Reaaliaikainen sähkönkäyttötilanne",
-      fluidPage(
-        fluidRow(
-          h1("Reaaliaikainen sähkönkäyttötilanne")
-        ),
-        fluidRow(
-          valueBoxOutput("kokonaiskulutus", width = 4),
-          valueBoxOutput("kokonaistuotanto", width = 4),
-          valueBoxOutput("tuulisuhde", width = 4)
-        ),
-        fluidRow(
-          valueBoxOutput("muutoskulutus", width = 4),
-          valueBoxOutput("muutostuotanto", width = 4),
-          valueBoxOutput("nettovienti", width = 4)
-        ),
-        fluidRow(h2("Sähkön kulutus sekä tuotanto viimeisen viikon aikana")),
-        fluidRow(
-          column(plotOutput("viikkoplot"), width = 10)
-        ),
-        fluidRow(
-          column(
-            p("Lähde: Fingridin avoin data-verkkopalvelu"),width = 4
-          )
-        )
-      )
-    ),
     ### aikasarjapaneeli ----------------------
     tabPanel(
       title = "Kotitalouksien kokonaiskulutuksen trendit",
@@ -225,10 +198,10 @@ ui <- navbarPage(
               choices = c("-" ,
                           "sopimuksien lukumäärä" ,
                           "määräaikaiset sopimukset",
-                          "lämmitysmuodot" ,
-                          "Asuu taajama-alueella" ,
-                          "Asuu kerrostalossa" ,
-                          "Asuntokunnan koko"),
+                          "lämmitys riippuvainen sähköstä" ,
+                          "asuu taajama-alueella" ,
+                          "asuu kerrostalossa" ,
+                          "asuntokunnan koko"),
               selected = "-"
               ),
             checkboxInput(
@@ -326,7 +299,34 @@ ui <- navbarPage(
         )
         )
 
-      )
+      ),
+     tabPanel(
+       title = "Reaaliaikainen sähkönkäyttötilanne",
+       fluidPage(
+         fluidRow(
+           h1("Reaaliaikainen sähkönkäyttötilanne")
+         ),
+         fluidRow(
+           valueBoxOutput("kokonaiskulutus", width = 4),
+           valueBoxOutput("kokonaistuotanto", width = 4),
+           valueBoxOutput("tuulisuhde", width = 4)
+         ),
+         fluidRow(
+           valueBoxOutput("muutoskulutus", width = 4),
+           valueBoxOutput("muutostuotanto", width = 4),
+           valueBoxOutput("nettovienti", width = 4)
+         ),
+         fluidRow(h2("Sähkön kulutus sekä tuotanto viimeisen viikon aikana")),
+         fluidRow(
+           column(plotOutput("viikkoplot"), width = 10)
+         ),
+         fluidRow(
+           column(
+             p("Lähde: Fingridin avoin data-verkkopalvelu"),width = 4
+           )
+         )
+       )
+     )
  ),
   navbarMenu(
     title = "Lisätietoja",
@@ -670,7 +670,7 @@ server <- function(input, output, session) {
           panel.grid.minor.x = element_blank())+
         scale_y_continuous(label = prosenttierotin)
 
-    } else if(input$soptyyp == 'lämmitysmuodot') {
+    } else if(input$soptyyp == 'lämmitys riippuvainen sähköstä') {
 
       boxplotit_lammitys[[input$kk]] %>%
         ggplot(aes(
@@ -716,7 +716,7 @@ server <- function(input, output, session) {
           panel.grid.minor.x = element_blank())+
         scale_y_continuous(label = prosenttierotin)
 
-    } else if (input$soptyyp == 'Asuu taajama-alueella') {
+    } else if (input$soptyyp == 'asuu taajama-alueella') {
 
       boxplotlista[[input$soptyyp]][[input$kk]] %>%
         ggplot(aes(
@@ -738,7 +738,7 @@ server <- function(input, output, session) {
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank())+
         scale_y_continuous(label = prosenttierotin)
-    } else if (input$soptyyp == 'Asuu kerrostalossa') {
+    } else if (input$soptyyp == 'asuu kerrostalossa') {
 
       boxplotlista[[input$soptyyp]][[input$kk]] %>%
         ggplot(aes(
@@ -760,7 +760,7 @@ server <- function(input, output, session) {
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank())+
         scale_y_continuous(label = prosenttierotin)
-    } else if (input$soptyyp == 'Asuntokunnan koko') {
+    } else if (input$soptyyp == 'asuntokunnan koko') {
 
       boxplotlista[[input$soptyyp]][[input$kk]] %>%
         ggplot(aes(
@@ -769,7 +769,7 @@ server <- function(input, output, session) {
           fill = yli_1_akkoko))  +
         geom_col(position = 'fill') +
         scale_fill_manual(
-          name = "Asuntokunnan koko yli yksi henkilö",
+          name = "asuntokunnan koko yli yksi henkilö",
           labels = c("Ei", "Kyllä"),
           values = c('#363197', '#F16c13')
         )+
@@ -823,7 +823,7 @@ server <- function(input, output, session) {
 
 
 
-    if (input$soptyyp == 'lämmitysmuodot') {
+    if (input$soptyyp == 'lämmitys riippuvainen sähköstä') {
 ### lämmitysboxplot ----------------------------------
       plot <- boxplot_data() %>%
         ggplot(
@@ -1080,9 +1080,9 @@ server <- function(input, output, session) {
         )
 
 
-    }else if (input$soptyyp == "Asuu kerrostalossa") {
+    }else if (input$soptyyp == "asuu kerrostalossa") {
 
-      ### Asuu kerrostalossa ------------------------
+      ### asuu kerrostalossa ------------------------
       plot <- boxplot_data() %>%
         ggplot(
           aes(
@@ -1143,7 +1143,7 @@ server <- function(input, output, session) {
         scale_x_discrete(name = "Tulokymmenys")+
         scale_fill_manual(
           name = '25 % - mediaani- 75 %',
-          label = c('Ei asu kerrostalossa','Asuu kerrostalossa'),
+          label = c('Ei asu kerrostalossa','asuu kerrostalossa'),
           values = c('#F16C13',"#234721")
         )+
         scale_colour_manual(
@@ -1165,7 +1165,7 @@ server <- function(input, output, session) {
         )
 
 
-    }else if (input$soptyyp == "Asuu taajama-alueella") {
+    }else if (input$soptyyp == "asuu taajama-alueella") {
 
       ### Taajamassa asuminen ------------------------
       plot <- boxplot_data() %>%
@@ -1228,7 +1228,7 @@ server <- function(input, output, session) {
         scale_x_discrete(name = "Tulokymmenys")+
         scale_fill_manual(
           name = '25 % - mediaani- 75 %',
-          label = c('Ei asu taajamassa','Asuu taajamassa'),
+          label = c('Ei asu taajamassa','asuu taajamassa'),
           values = c('#F16C13',"#234721")
         )+
         scale_colour_manual(
@@ -1250,9 +1250,9 @@ server <- function(input, output, session) {
         )
 
 
-    }else if (input$soptyyp == "Asuntokunnan koko") {
+    }else if (input$soptyyp == "asuntokunnan koko") {
 
-      ### Asuntokunnan koko ------------------------
+      ### asuntokunnan koko ------------------------
       plot <- boxplot_data() %>%
         ggplot(
           aes(

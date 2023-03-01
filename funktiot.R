@@ -145,3 +145,4 @@ ota_yhteys_fingrid_api <- function(url){
 
 
 }
+
