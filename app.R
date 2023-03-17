@@ -11,6 +11,8 @@ library(jsonlite, warn.conflicts = F)
 
 source("funktiot.R", encoding = 'UTF-8')
 
+lisaa_logo <- FALSE
+
 #Sys.setlocale("LC_ALL", "Finnish_Finland.1252")
 
 ### ladataan data ----------------
@@ -72,26 +74,33 @@ ui <- navbarPage(
               type = "image/png",
               sizes = "32x32",
               href = "DH_pikkulogo.png"),
-    tags$style(
-      HTML("
-        .navbar-nav > li > a, .navbar-brand {
-                   padding-top:15px !important;
-                   padding-bottom:0 !important;
-                   height: 55px;
-        }
-        .navbar-brand {
-                   margin-top: -10px;
-                   margin-bottom: 0;
-        }
 
-        .navbar {min-height:45px !important;}
-        "
+    if(lisaa_logo){
+      tags$style(
+        HTML("
+          .navbar-nav > li > a, .navbar-brand {
+                     padding-top:15px !important;
+                     padding-bottom:0 !important;
+                     height: 55px;
+          }
+          .navbar-brand {
+                     margin-top: -10px;
+                     margin-bottom: 0;
+          }
+
+          .navbar {min-height:45px !important;}
+          "
+          )
         )
-      )
+      }
     ),
 
+
     # Application title
-      title =  div(img(src="Datahuone_graafi_littee.png", height = 50)),
+      if(lisaa_logo){
+        title =  div(img(src="Datahuone_graafi_littee.png", height = 50))
+      },
+
       windowTitle = "Datahuone",
 
 
@@ -154,10 +163,13 @@ ui <- navbarPage(
           p("Voit vaikuttaa kuvaajaan muuttamalla yllä olevia valintoja")
         ),
         mainPanel(
-          fluidRow(h1("Kotitalouksien sähkönkäyttö")),
+          fluidRow(h1("Yksityishenkilöiden yhteenlaskettu sähkönkäyttö")),
           fluidRow(
             column(plotOutput("aikasarjaplot"), width = 11),
-            )
+            ),
+          fluidRow(
+            downloadButton("download_aikasarja", "Lataa csv")
+          )
           )
         )
       ),
@@ -1396,6 +1408,28 @@ server <- function(input, output, session) {
     })
 
   # downloaderit ----------------------------------
+
+
+  output$download_aikasarja <-downloadHandler(
+    filename = function(){
+      if(input$tarktaso == "Koko maa"){
+        return(paste0("datahuone_fdh_kokonaiskulutus.csv"))
+      } else if(input$tarktaso == "Maakunnittain"){
+        return(paste0("datahuone_fdh_kokonaiskulutus_maakunnittain.csv"))
+      } else {
+        return(paste0("datahuone_fdh_kokonaiskulutus_kunnittain.csv"))
+      }
+
+    },
+    content = function(file){
+
+      data <- aikasarja_data() %>%
+        rename(sahkon_kulutus_yht_kwh = sahkonkul,
+               asukkaiden_lkm = sum_ak)
+
+      write.csv(data, file, row.names = F, fileEncoding = "UTF-8")
+    }
+  )
 
   output$download <-downloadHandler(
     filename = function(){
