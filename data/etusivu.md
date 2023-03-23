@@ -4,7 +4,7 @@ Tervetuloa VATT Datahuoneen Shiny-sovellukseen! Alla esittelemme lyhyesti jokais
 
 ## Kotitalouksien sähkönkulutus - Fingrid Datahubin tilastotietojen tarkastelu
 
-Täältä voit tarkastella suomalaisten kotitalouksien sähkönkulutusta Fingrid Datahubin tilastotietojen avulla, jotka on yhdistetty Tilastokeskuksen rekisteriaineistoihin.
+Täältä voit tarkastella suomalaisten kotitalouksien sähkönkulutusta Fingrid Datahubin rekisteriaineistoilla tuotetun tiedon avulla, jotka on yhdistetty Tilastokeskuksen rekisteriaineistoihin.
 
 Osiossa "Reaaliaikainen sähkönkäyttötilanne" näet reaaliaikaiset tiedot sähkön käytöstä ja tuotannosta. Nämä tiedot ovat saatavilla Fingridin avoimesta data-verkkopalvelusta ja kattavat kaikki sähkönkäyttäjät.
 
