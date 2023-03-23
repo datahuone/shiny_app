@@ -13,6 +13,8 @@ source("funktiot.R", encoding = 'UTF-8')
 
 lisaa_logo <- FALSE
 
+lisaa_kunta_hommat <- F
+
 #Sys.setlocale("LC_ALL", "Finnish_Finland.1252")
 
 ### ladataan data ----------------
@@ -113,7 +115,9 @@ ui <- navbarPage(
     fluidPage(
       fluidRow(
         column(
-          includeMarkdown("data/etusivu.md"),
+          includeMarkdown(ifelse(lisaa_kunta_hommat,
+                                 "data/etusivu_kunnallinen.md",
+                                 "data/etusivu.md")),
 
           width = 10))
       )
@@ -251,6 +255,8 @@ ui <- navbarPage(
           )
       ),
  ## kuntapaneeli ------------------------
+
+ if(lisaa_kunta_hommat) {
     tabPanel(
       title = "Kuntakohtainen tarkastelu",
       sidebarLayout(
@@ -291,7 +297,8 @@ ui <- navbarPage(
         )
         )
 
-      ),
+    )
+   },
      tabPanel(
        title = "Reaaliaikainen sähkönkäyttötilanne",
        fluidPage(
