@@ -233,9 +233,8 @@ ui <- navbarPage(
               column(width = 1)
               ),
             fluidRow(
-              valueBoxOutput("sopmaarat", width = 4),
               valueBoxOutput("askumaarat", width = 4),
-              valueBoxOutput("dessuhde", width = 4)
+              valueBoxOutput("dessuhde", width = 8)
               ),
             fluidRow(
               downloadButton("download", "Lataa csv")
@@ -508,12 +507,6 @@ server <- function(input, output, session) {
 
   })
   ## desiili sivu ---------------------------------------
-  output$sopmaarat <- shinydashboard::renderValueBox({
-
-    sum <- sum(boxplotit_sopimukset[[input$kk]]$n)
-
-    shinydashboard::valueBox(tuhaterotin(sum), "sopimuksien lukumäärä")
-  })
 
 
   output$taustaotsikko <- renderText(
@@ -545,7 +538,7 @@ server <- function(input, output, session) {
       select(y_mean) %>%
       pull()
 
-    shinydashboard::valueBox(tuhaterotin(round(values[2]/values[1],2)), "Korkeatuloisin desiili kuluttaa kertaa enemmän sähkkön kuin pienituloisin desiili.")
+    shinydashboard::valueBox(tuhaterotin(round(values[2]/values[1],2)), "Korkeatuloisin desiili kulutti tässä kuussa kertaa enemmän sähköä kuin pienituloisin desiili.")
     })
 
 
