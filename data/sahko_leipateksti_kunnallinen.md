@@ -4,7 +4,7 @@ Osiossa "Reaaliaikainen sähkönkäyttötilanne" näet reaaliaikaiset tiedot sä
 
 Suomen kotitalouksien sähkönkulutusta on mahdollista tarkastella eri tarkastelutasoilla. Osiossa "Kotitalouksien kokonaiskulutuksen trendit" esitellään maantieteellisten alueiden kokonaissähkönkulutusta sekä henkilökohtaista sähkönkulutusta.
 
-Osiossa "Sosioekonomisten muuttujien vaikutus" näet sosioekonomisten muuttujien vaikutuksen sähkönkulutukseen. Näitä muuttujia ovat esimerkiksi asuntokuntien tulotaso, asumismuoto ja koko.
+Osiossa "Sosioekonomisten muuttujien vaikutus" voit tarkastella esimerkiksi asuntokuntien tulotason, asumismuodon ja koon vaikutusta sähkönkulutukseen.
 
 "Kuntakohtainen tarkastelu" -osiossa voit vertailla oman asuntokuntasi sähkönkulutusta muiden asuntokuntien keskiarvoon oman asuinkuntasi alueella. Tämä antaa käsityksen siitä, millä tasolla oma sähkönkulutus suhteutuu paikalliseen keskiarvoon ja millaisia eroja eri kuntien välillä on.
 
