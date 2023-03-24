@@ -587,7 +587,8 @@ server <- function(input, output, session) {
 
   output$piirakkaplot <- renderPlot({
 
-      plot_data <- lataa_kaikki() %>%
+
+    plot_data <- lataa_kaikki()%>%
         separate(name,c("turha", "name")) %>%
         select(-turha) %>%
         filter(!name %in% c("kokonaistuotanto",
@@ -612,9 +613,9 @@ server <- function(input, output, session) {
                           labels = paste0(plot_data$name, " ", prosenttierotin(round(plot_data$value,3))))+
         theme_void()+
         theme(
-          plot.title = element_text(size = 18),
-          legend.text = element_text(size=14),
-          plot.caption =  element_text(size = 10, hjust = 0)) +
+          plot.title = element_text(size = 20),
+          legend.text = element_text(size= 16),
+          plot.caption =  element_text(size = 12, hjust = 0)) +
         labs(title = "Sähköntuotannon reaaliaikaiset osuudet",
              caption = stringr::str_wrap("Tiedot ovat Fingridin avoin data  -verkkopalvelusta ja perustuvat käytönvalvontajärjestelmän reaaliaikaisiin mittauksiin", 80))
 
@@ -656,7 +657,10 @@ server <- function(input, output, session) {
                          label = tuhaterotin)+
       scale_x_date(name = NULL,
                    label = formatoi_kuukaudet_plot) +
-      coord_cartesian(ylim = c(0,max(data$sahkonkul)))
+      coord_cartesian(ylim = c(0,max(data$sahkonkul))) +
+      theme_light() +
+      theme(axis.text = element_text(size = 14),
+            axis.title = element_text(size = 14))
   })
 
   output$viikkoplot <- renderPlot({
@@ -667,7 +671,8 @@ server <- function(input, output, session) {
                  y = value,
                  colour = name,
                  group = name)) +
-      geom_line(size = 1.5)+
+      geom_line(size = 1.5) +
+      scale_y_continuous(label = tuhaterotin)+
       scale_x_datetime(breaks = "1 day",
                        date_labels = "%d.%m.")+
       scale_color_manual(
@@ -677,7 +682,10 @@ server <- function(input, output, session) {
         values = c("#393594","#721d41") )+
       theme_light() +
       labs(x = NULL, y = 'MW')+
-      theme(legend.position = 'bottom')
+      theme(legend.position = 'bottom') +
+      theme(axis.text = element_text(size = 14),
+            axis.title = element_text(size = 14),
+            legend.text = element_text(size= 14))
 
   })
 
@@ -706,6 +714,7 @@ server <- function(input, output, session) {
           panel.border = element_blank(),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank())+
+
         scale_y_continuous(label = prosenttierotin)
 
     } else if(input$soptyyp == 'lämmitys riippuvainen sähköstä') {
@@ -728,7 +737,10 @@ server <- function(input, output, session) {
           legend.position = 'bottom',
           panel.border = element_blank(),
           panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank())+
+          panel.grid.minor.x = element_blank(),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size= 14))+
         scale_y_continuous(label = prosenttierotin)
 
     } else if (input$soptyyp == 'sopimuksien lukumäärä') {
@@ -751,7 +763,10 @@ server <- function(input, output, session) {
           legend.position = 'bottom',
           panel.border = element_blank(),
           panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank())+
+          panel.grid.minor.x = element_blank(),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size= 14))+
         scale_y_continuous(label = prosenttierotin)
 
     } else if (input$soptyyp == 'asuu taajama-alueella') {
@@ -774,7 +789,10 @@ server <- function(input, output, session) {
           legend.position = 'bottom',
           panel.border = element_blank(),
           panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank())+
+          panel.grid.minor.x = element_blank(),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size= 14))+
         scale_y_continuous(label = prosenttierotin)
     } else if (input$soptyyp == 'asuu kerrostalossa') {
 
@@ -796,7 +814,10 @@ server <- function(input, output, session) {
           legend.position = 'bottom',
           panel.border = element_blank(),
           panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank())+
+          panel.grid.minor.x = element_blank(),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size= 14))+
         scale_y_continuous(label = prosenttierotin)
     } else if (input$soptyyp == 'asuntokunnan koko') {
 
@@ -818,7 +839,10 @@ server <- function(input, output, session) {
           legend.position = 'bottom',
           panel.border = element_blank(),
           panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank())+
+          panel.grid.minor.x = element_blank(),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size= 14))+
         scale_y_continuous(label = prosenttierotin)
     }
 
@@ -852,7 +876,10 @@ server <- function(input, output, session) {
                    label = formatoi_kuukaudet_plot) +
       scale_y_continuous(name = "Sähkönkulutus kWh",
                          label = tuhaterotin)+
-      theme(legend.position = 'bottom') +
+      theme(legend.position = 'bottom',
+            axis.text = element_text(size = 14),
+            axis.title = element_text(size = 14),
+            legend.text = element_text(size= 14)) +
       scale_fill_viridis_d()
   })
 
@@ -943,7 +970,10 @@ server <- function(input, output, session) {
           panel.border =element_blank(),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          plot.caption = element_text(hjust = 0)
+          plot.caption = element_text(hjust = 0),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size= 14)
         )
 
     } else if (input$soptyyp == 'määräaikaiset sopimukset') {
@@ -1006,8 +1036,9 @@ server <- function(input, output, session) {
       }
 
       plot +
-        scale_y_continuous(name = "Sähkönkulutus (kWh)",
-                           labels = tuhaterotin) +
+        scale_y_continuous(
+          name = "Sähkönkulutus (kWh)",
+          labels = tuhaterotin) +
         scale_x_discrete(name = "Tulokymmenys")+
         scale_fill_manual(
           name = '25 % - mediaani- 75 %',
@@ -1029,13 +1060,17 @@ server <- function(input, output, session) {
           panel.border =element_blank(),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          plot.caption = element_text(hjust = 0)
+          plot.caption = element_text(hjust = 0),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size= 14)
         )
 
 
     } else if (input$soptyyp == "sopimuksien lukumäärä") {
 
 ### sopimusten lukumäärä ------------------------
+
       plot <- boxplot_data() %>%
         ggplot(
           aes(
@@ -1114,7 +1149,10 @@ server <- function(input, output, session) {
           panel.border =element_blank(),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          plot.caption = element_text(hjust = 0)
+          plot.caption = element_text(hjust = 0),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size= 14)
         )
 
 
@@ -1148,7 +1186,7 @@ server <- function(input, output, session) {
             middle = y_median,
             upper = y_75,
             max = y_75,
-            fill = factor(asuu_kerrostalossa )
+            fill = factor(asuu_kerrostalossa)
           ),
           colour = 'black',
           width = 0.75,
@@ -1176,8 +1214,10 @@ server <- function(input, output, session) {
       }
 
       plot +
-        scale_y_continuous(name = "Sähkönkulutus (kWh)",
-                           labels = tuhaterotin) +
+        scale_y_continuous(
+          name = "Sähkönkulutus (kWh)",
+          labels = tuhaterotin
+        ) +
         scale_x_discrete(name = "Tulokymmenys")+
         scale_fill_manual(
           name = '25 % - mediaani- 75 %',
@@ -1199,7 +1239,10 @@ server <- function(input, output, session) {
           panel.border =element_blank(),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          plot.caption = element_text(hjust = 0)
+          plot.caption = element_text(hjust = 0),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size= 14)
         )
 
 
@@ -1284,7 +1327,10 @@ server <- function(input, output, session) {
           panel.border =element_blank(),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          plot.caption = element_text(hjust = 0)
+          plot.caption = element_text(hjust = 0),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size= 14)
         )
 
 
@@ -1369,7 +1415,10 @@ server <- function(input, output, session) {
           panel.border =element_blank(),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          plot.caption = element_text(hjust = 0)
+          plot.caption = element_text(hjust = 0),
+          axis.text = element_text(size = 14),
+          axis.title = element_text(size = 14),
+          legend.text = element_text(size= 14)
         )
 
 
@@ -1448,7 +1497,10 @@ server <- function(input, output, session) {
         panel.border =element_blank(),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
-        plot.caption = element_text(hjust = 0)
+        plot.caption = element_text(hjust = 0),
+        axis.text = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        legend.text = element_text(size= 14)
       )
     }
     })

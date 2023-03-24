@@ -144,6 +144,8 @@ ota_yhteys_fingrid_api <- function(url){
 }
 
 lataa_kaikki <- function(){
+
   as_tibble(sapply(names(fingrid_sanakirja()), lataa_viimeisin_fingrid)) %>%
-    mutate(name = nimet)
+    mutate(name = names(fingrid_sanakirja()))
+
 }
