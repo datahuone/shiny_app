@@ -114,13 +114,13 @@ ui <- navbarPage(
     title = "Etusivu",
     fluidPage(
       fluidRow(
-        includeMarkdown("data/etusivu.md")
+        includeMarkdown("tekstit/etusivu.md")
       ),
       fluidRow(
         column(
           includeMarkdown(ifelse(lisaa_kunta_hommat,
-                                 "data/sahko_leipateksti_kunnallinen.md",
-                                 "data/sahko_leipateksti.md")),
+                                 "tekstit/sahko_leipateksti_kunnallinen.md",
+                                 "tekstit/sahko_leipateksti.md")),
 
           width = 6
           ),
@@ -341,7 +341,7 @@ ui <- navbarPage(
       title = "Taustaa datasta",
       h2("Oletukset datan taustalla:"),
       column(width = 1),
-      column(includeMarkdown("data/dataselite.md"), width = 10),
+      column(includeMarkdown("tekstit/dataselite.md"), width = 10),
       column(width = 1)
       ),
     tabPanel(
