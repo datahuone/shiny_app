@@ -601,7 +601,7 @@ server <- function(input, output, session) {
 
       plot_data %>%
         ggplot(aes(x="", y=value, fill = name)) +
-        geom_bar(stat="identity", width=1) +
+        geom_bar(stat="identity", width=1, colour = "white") +
         coord_polar("y", start=0) +
         scale_fill_manual(name=NULL,
                           values = c("#721d41",

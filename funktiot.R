@@ -1,3 +1,5 @@
+# Apufunktiot ===============================================
+
 tuhaterotin <- function(x){
   format(x, big.mark= " ",
          decimal.mark = ",",
