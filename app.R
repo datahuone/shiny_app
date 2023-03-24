@@ -521,7 +521,7 @@ server <- function(input, output, session) {
   output$taustaotsikko <- renderText(
 
     if(input$soptyyp != '-'){
-      return("Taustaa tulokymmenistä")
+      return("Taustaa tulokymmenyksistä")
     } else{
       NULL
     }
@@ -740,7 +740,7 @@ server <- function(input, output, session) {
           panel.grid.minor.x = element_blank(),
           axis.text = element_text(size = 14),
           axis.title = element_text(size = 14),
-          legend.text = element_text(size= 14))+
+          legend.text = element_text(size= 12))+
         scale_y_continuous(label = prosenttierotin)
 
     } else if (input$soptyyp == 'sopimuksien lukumäärä') {
@@ -766,7 +766,7 @@ server <- function(input, output, session) {
           panel.grid.minor.x = element_blank(),
           axis.text = element_text(size = 14),
           axis.title = element_text(size = 14),
-          legend.text = element_text(size= 14))+
+          legend.text = element_text(size= 12))+
         scale_y_continuous(label = prosenttierotin)
 
     } else if (input$soptyyp == 'asuu taajama-alueella') {
@@ -792,7 +792,7 @@ server <- function(input, output, session) {
           panel.grid.minor.x = element_blank(),
           axis.text = element_text(size = 14),
           axis.title = element_text(size = 14),
-          legend.text = element_text(size= 14))+
+          legend.text = element_text(size= 12))+
         scale_y_continuous(label = prosenttierotin)
     } else if (input$soptyyp == 'asuu kerrostalossa') {
 
@@ -817,7 +817,7 @@ server <- function(input, output, session) {
           panel.grid.minor.x = element_blank(),
           axis.text = element_text(size = 14),
           axis.title = element_text(size = 14),
-          legend.text = element_text(size= 14))+
+          legend.text = element_text(size= 12))+
         scale_y_continuous(label = prosenttierotin)
     } else if (input$soptyyp == 'asuntokunnan koko') {
 
@@ -842,7 +842,7 @@ server <- function(input, output, session) {
           panel.grid.minor.x = element_blank(),
           axis.text = element_text(size = 14),
           axis.title = element_text(size = 14),
-          legend.text = element_text(size= 14))+
+          legend.text = element_text(size= 12))+
         scale_y_continuous(label = prosenttierotin)
     }
 
@@ -973,7 +973,9 @@ server <- function(input, output, session) {
           plot.caption = element_text(hjust = 0),
           axis.text = element_text(size = 14),
           axis.title = element_text(size = 14),
-          legend.text = element_text(size= 14)
+          legend.text = element_text(size= 12),
+          legend.box="vertical",
+          legend.margin=margin()
         )
 
     } else if (input$soptyyp == 'määräaikaiset sopimukset') {
@@ -1063,7 +1065,9 @@ server <- function(input, output, session) {
           plot.caption = element_text(hjust = 0),
           axis.text = element_text(size = 14),
           axis.title = element_text(size = 14),
-          legend.text = element_text(size= 14)
+          legend.text = element_text(size= 12),
+          legend.box="vertical",
+          legend.margin=margin()
         )
 
 
@@ -1152,7 +1156,7 @@ server <- function(input, output, session) {
           plot.caption = element_text(hjust = 0),
           axis.text = element_text(size = 14),
           axis.title = element_text(size = 14),
-          legend.text = element_text(size= 14)
+          legend.text = element_text(size= 12)
         )
 
 
@@ -1242,7 +1246,9 @@ server <- function(input, output, session) {
           plot.caption = element_text(hjust = 0),
           axis.text = element_text(size = 14),
           axis.title = element_text(size = 14),
-          legend.text = element_text(size= 14)
+          legend.text = element_text(size= 12),
+          legend.box="vertical",
+          legend.margin=margin()
         )
 
 
@@ -1330,7 +1336,9 @@ server <- function(input, output, session) {
           plot.caption = element_text(hjust = 0),
           axis.text = element_text(size = 14),
           axis.title = element_text(size = 14),
-          legend.text = element_text(size= 14)
+          legend.text = element_text(size= 12),
+          legend.box="vertical",
+          legend.margin=margin()
         )
 
 
@@ -1418,7 +1426,9 @@ server <- function(input, output, session) {
           plot.caption = element_text(hjust = 0),
           axis.text = element_text(size = 14),
           axis.title = element_text(size = 14),
-          legend.text = element_text(size= 14)
+          legend.text = element_text(size= 12),
+          legend.box="vertical",
+          legend.margin=margin()
         )
 
 
@@ -1500,7 +1510,7 @@ server <- function(input, output, session) {
         plot.caption = element_text(hjust = 0),
         axis.text = element_text(size = 14),
         axis.title = element_text(size = 14),
-        legend.text = element_text(size= 14)
+        legend.text = element_text(size= 12)
       )
     }
     })
