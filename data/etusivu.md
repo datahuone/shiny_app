@@ -10,7 +10,7 @@ Osiossa "Reaaliaikainen sähkönkäyttötilanne" näet reaaliaikaiset tiedot sä
 
 Suomen kotitalouksien sähkönkulutusta on mahdollista tarkastella eri tarkastelutasoilla. Osiossa "Kotitalouksien kokonaiskulutuksen trendit" esitellään maantieteellisten alueiden kokonaissähkönkulutusta sekä henkilökohtaista sähkönkulutusta.
 
-Osiossa "Sosioekonomisten muuttujien vaikutus" näet sosioekonomisten muuttujien vaikutuksen sähkönkulutukseen. Näitä muuttujia ovat esimerkiksi asuntokuntien tulotaso, asumismuoto ja koko.
+Osiossa "Sosioekonomisten muuttujien vaikutus" voit tarkastella esimerkiksi asuntokuntien tulotason, asumismuodon ja koon vaikutusta sähkönkulutukseen.
 
 
 Tavoitteenamme on tarjota käyttäjille mahdollisimman monipuolinen ja kattava näkymä Suomen kotitalouksien sähkönkulutukseen. Tiedot perustuvat Fingrid Datahubin tilastotietoihin, jotka olemme yhdistäneet Tilastokeskuksen rekisteriaineistoihin. Lisäksi olemme keränneet muita tietoja täydentämään näitä tilastoja, esimerkiksi Ilmatieteenlaitoksen säädataa sekä Fingridin avointa dataa. Toivomme, että sovelluksemme auttaa käyttäjiä ymmärtämään paremmin sähkönkulutuksen jakautumista ja siihen vaikuttavia tekijöitä eri tarkastelutasoilla.
