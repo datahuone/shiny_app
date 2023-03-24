@@ -114,12 +114,21 @@ ui <- navbarPage(
     title = "Etusivu",
     fluidPage(
       fluidRow(
+        includeMarkdown("data/etusivu.md")
+      ),
+      fluidRow(
         column(
           includeMarkdown(ifelse(lisaa_kunta_hommat,
-                                 "data/etusivu_kunnallinen.md",
-                                 "data/etusivu.md")),
+                                 "data/sahko_leipateksti_kunnallinen.md",
+                                 "data/sahko_leipateksti.md")),
 
-          width = 10))
+          width = 6
+          ),
+        column(
+          plotOutput("piirakkaplot"),
+          width = 6
+          )
+        )
       )
     ),
 
@@ -320,7 +329,7 @@ ui <- navbarPage(
          ),
          fluidRow(
            column(
-             p("Lähde: Fingridin avoin data-verkkopalvelu"),width = 4
+             p("Lähde: Fingridin avoin data -verkkopalvelu"),width = 4
            )
          )
        )
@@ -573,6 +582,43 @@ server <- function(input, output, session) {
   })
 
   # Plotit ----------------------------------------
+
+  ## piirakkaplot -------------------------------------------
+
+  output$piirakkaplot <- renderPlot({
+
+      plot_data <- lataa_kaikki() %>%
+        separate(name,c("turha", "name")) %>%
+        select(-turha) %>%
+        filter(!name %in% c("kokonaistuotanto",
+                            "kokonaiskulutus",
+                            "vienti")) %>%
+        group_by(name) %>%
+        summarise(value = sum(value)) %>%
+        ungroup() %>%
+        mutate(value = value / sum(value))
+
+      plot_data %>%
+        ggplot(aes(x="", y=value, fill = name)) +
+        geom_bar(stat="identity", width=1) +
+        coord_polar("y", start=0) +
+        scale_fill_manual(name=NULL,
+                          values = c("#721d41",
+                                     "#8482bd",
+                                     "#234721",
+                                     "#393594",
+                                     "#AED136",
+                                     "#f16c13"),
+                          labels = paste0(plot_data$name, " ", prosenttierotin(round(plot_data$value,3))))+
+        theme_void()+
+        theme(
+          plot.title = element_text(size = 18),
+          legend.text = element_text(size=14),
+          plot.caption =  element_text(size = 10, hjust = 0)) +
+        labs(title = "Sähköntuotannon reaaliaikaiset osuudet",
+             caption = stringr::str_wrap("Tiedot ovat Fingridin avoin data  -verkkopalvelusta ja perustuvat käytönvalvontajärjestelmän reaaliaikaisiin mittauksiin", 80))
+
+    })
 
   ## aikasarjadata --------------------------------------
   output$aikasarjaplot <- renderPlot({

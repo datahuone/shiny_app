@@ -72,12 +72,9 @@ fingrid_sanakirja <- function(){
       "reaali yhteistuotanto kaukolämpö" = 201,
       "reaali yhteistuotanto teollisuus" = 202,
       "reaali pientuotanto" = 205,
-      "reaali lauhdevoimatuotanto" = 189,
       "reaali ydinvoima" = 188,
       "reaali kokonaiskulutus" = 193,
-      "reaali vienti" = 194,
-      "kokonaistuontanto" = 74,
-      "tuulivoima" = 75
+      "reaali vienti" = 194
       )
   )
 }
@@ -146,3 +143,7 @@ ota_yhteys_fingrid_api <- function(url){
 
 }
 
+lataa_kaikki <- function(){
+  as_tibble(sapply(names(fingrid_sanakirja()), lataa_viimeisin_fingrid)) %>%
+    mutate(name = nimet)
+}
