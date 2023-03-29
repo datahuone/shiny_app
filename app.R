@@ -588,36 +588,58 @@ server <- function(input, output, session) {
   output$piirakkaplot <- renderPlot({
 
 
-    plot_data <- lataa_kaikki()%>%
-        separate(name,c("turha", "name")) %>%
-        select(-turha) %>%
-        filter(!name %in% c("kokonaistuotanto",
-                            "kokonaiskulutus",
-                            "vienti")) %>%
-        group_by(name) %>%
-        summarise(value = sum(value)) %>%
-        ungroup() %>%
-        mutate(value = value / sum(value))
+    fd_data <- lataa_kaikki()
 
-      plot_data %>%
-        ggplot(aes(x="", y=value, fill = name)) +
-        geom_bar(stat="identity", width=1, colour = "white") +
-        coord_polar("y", start=0) +
-        scale_fill_manual(name=NULL,
-                          values = c("#721d41",
-                                     "#8482bd",
-                                     "#234721",
-                                     "#393594",
-                                     "#AED136",
-                                     "#f16c13"),
-                          labels = paste0(plot_data$name, " ", prosenttierotin(round(plot_data$value,3))))+
-        theme_void()+
-        theme(
-          plot.title = element_text(size = 20),
-          legend.text = element_text(size= 16),
-          plot.caption =  element_text(size = 12, hjust = 0)) +
-        labs(title = "Sähköntuotannon reaaliaikaiset osuudet",
-             caption = stringr::str_wrap("Tiedot ovat Fingridin avoin data  -verkkopalvelusta ja perustuvat käytönvalvontajärjestelmän reaaliaikaisiin mittauksiin", 80))
+    plot_data <- fd_data%>%
+      separate(name,c("turha", "name")) %>%
+      select(-turha) %>%
+      filter(!name %in% c("kokonaistuotanto",
+                          "kokonaiskulutus",
+                          "vienti")) %>%
+      group_by(name) %>%
+      summarise(value = sum(value)) %>%
+      ungroup() %>%
+      mutate(value = value / sum(value))
+
+    viiva_data <- fd_data %>%
+      separate(name,c("turha", "name")) %>%
+      select(-turha) %>%
+      filter(name %in% c("kokonaistuotanto",
+                         "kokonaiskulutus")) %>%
+      pivot_wider(names_from = name, values_from = value)
+
+
+    plot_data %>%
+      ggplot(aes(x="", y=value, fill = name)) +
+      geom_bar(stat="identity", width = 1,size = 1, colour = "white") +
+      geom_vline(
+        aes(
+          linetype = "kokonaiskulutus",
+          xintercept = 0.5+(viiva_data$kokonaiskulutus/viiva_data$kokonaistuotanto)
+        ),
+        size = 1) +
+      coord_polar("y", start=0) +
+      scale_fill_manual(
+        name=NULL,
+        values = c("#721d41",
+                   "#8482bd",
+                   "#234721",
+                   "#393594",
+                   "#AED136",
+                   "#f16c13"),
+        labels = paste0(plot_data$name, " ", prosenttierotin(round(plot_data$value,3)))
+      )+
+      scale_linetype_manual(
+        name = NULL,
+        values = c("dashed")
+      )+
+      theme_void()+
+      theme(
+        plot.title = element_text(size = 22),
+        legend.text = element_text(size= 20),
+        plot.caption =  element_text(size = 14, hjust = 0)) +
+      labs(title = "Sähkön tämänhetkinen tuotanto sekä kulutus",
+           caption = stringr::str_wrap("Tiedot ovat Fingridin avoin data  -verkkopalvelusta ja perustuvat käytönvalvontajärjestelmän reaaliaikaisiin mittauksiin. Lisätietoja sähköntuotannosta sekä kulutuksesta voi löytää \"Reaaliaikainen sähkönkäyttötilanne\"-osiosta.", 80))
 
     })
 
