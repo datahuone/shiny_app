@@ -11,11 +11,9 @@ library(jsonlite, warn.conflicts = F)
 
 source("funktiot.R", encoding = 'UTF-8')
 
-lisaa_logo <- FALSE
+lisaa_logo <- FALSE #lisää datahuonelogong yläoikealle
 
 lisaa_kunta_hommat <- F
-
-#Sys.setlocale("LC_ALL", "Finnish_Finland.1252")
 
 ### ladataan data ----------------
 kuukaudet <- feather::read_feather("data/kuukaudet_saatavilla.feather")$kuukaudet
@@ -112,6 +110,8 @@ ui <- navbarPage(
 
     # Etusivu -----------------------------------------------
     title = "Etusivu",
+    icon = icon('house'),
+
     fluidPage(
       fluidRow(
         includeMarkdown("tekstit/etusivu.md")
@@ -135,6 +135,8 @@ ui <- navbarPage(
   # sähköjutut ---------------------------
   navbarMenu(
     title = "Kotitalouksien sähkönkulutus",
+    icon = icon("plug"),
+
 
     ### aikasarjapaneeli ----------------------
     tabPanel(
@@ -335,8 +337,12 @@ ui <- navbarPage(
        )
      )
  ),
+
+ ## Lisätietosivut ---------------------------------------------
   navbarMenu(
     title = "Lisätietoja",
+    icon = icon('circle-info'),
+
     tabPanel(
       title = "Taustaa datasta",
       h2("Oletukset datan taustalla:"),
