@@ -1,20 +1,43 @@
 # Apufunktiot ===============================================
 
+#' Tuhaterotin
+#'
+#' Formatoi numerot oikeaoppisesti. Käyttämällä välilyöntiä tuhaerottimena
+#' sekä pilkkua pisteen sijaan desimaalimerkkinä
+#'
+#' @param x numero
+#' @returns str
+#'
 tuhaterotin <- function(x){
   format(x, big.mark= " ",
          decimal.mark = ",",
          scientific = FALSE)
 }
 
+#' Prosenttierotin
+#'
+#' Formatoi prosenttiluvut oikeaoppisesti. Lisäämällä välin luvun sekä % väliin.
+#'
+#' @param x Luku 0,1 väliltä
+#' @returns str
 prosenttierotin <- function(x){
   paste0(tuhaterotin(x*100), " %")
 }
 
+#'Suomenkieliset kuukaudet
+#'
+#'Hakee readr-paketista suomenkielisen kuukauden nimen päivämäärälle.
+#'
+#' @param date
+#' @returns str suomenkielinen kuukausi
 kuukaudet_suom <- function(date){
   locaali <- readr::date_names_lang("fi")
   gsub('.{2}$','',locaali$mon)[lubridate::month(date)]
 }
 
+#' Formatoikuukausien nimi kuvaajiin
+#'
+#' Lisää
 formatoi_kuukaudet_plot <- function(date){
   return(paste0(kuukaudet_suom(date), format(date, " %y")))
 }
