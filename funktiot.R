@@ -6,7 +6,7 @@
 #' sekä pilkkua pisteen sijaan desimaalimerkkinä
 #'
 #' @param x numero
-#' @returns str
+#' @return str
 #'
 tuhaterotin <- function(x){
   format(x, big.mark= " ",
@@ -19,7 +19,7 @@ tuhaterotin <- function(x){
 #' Formatoi prosenttiluvut oikeaoppisesti. Lisäämällä välin luvun sekä % väliin.
 #'
 #' @param x Luku 0,1 väliltä
-#' @returns str
+#' @return str
 prosenttierotin <- function(x){
   paste0(tuhaterotin(x*100), " %")
 }
@@ -29,7 +29,7 @@ prosenttierotin <- function(x){
 #'Hakee readr-paketista suomenkielisen kuukauden nimen päivämäärälle.
 #'
 #' @param date
-#' @returns str suomenkielinen kuukausi
+#' @return str suomenkielinen kuukausi
 kuukaudet_suom <- function(date){
   locaali <- readr::date_names_lang("fi")
   gsub('.{2}$','',locaali$mon)[lubridate::month(date)]
@@ -43,6 +43,15 @@ formatoi_kuukaudet_plot <- function(date){
 }
 
 
+#' Title
+#'
+#' @param kansion_nimi
+#' @param kuukaudet
+#'
+#' @return
+#' @export
+#'
+#' @examples
 lataa_data <- function(kansion_nimi, kuukaudet){
   boxplotit <- lapply(
     kuukaudet, function(x) feather::read_feather(paste0("data/",kansion_nimi,"/data",x,".feather")))
