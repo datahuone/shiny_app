@@ -16,7 +16,9 @@ lisaa_logo <- FALSE #lisää datahuonelogong yläoikealle
 lisaa_kunta_hommat <- F
 
 ### ladataan data ----------------
-kuukaudet <- feather::read_feather("data/kuukaudet_saatavilla.feather")$kuukaudet
+kuukaudet <- feather::read_feather("data/kuukaudet_saatavilla.feather") %>%
+  arrange(kuukaudet) %>%
+  pull()
 
 #ladataan boxplot datat
 boxplotit_sopimukset <- lataa_data("asuntokunnittain_sopimustenlkm_boxplotit",kuukaudet)
@@ -108,7 +110,7 @@ ui <- navbarPage(
 
   tabPanel(
 
-    # Etusivu -----------------------------------------------
+# Etusivu -----------------------------------------------
     title = "Etusivu",
     icon = icon('house'),
 
@@ -132,13 +134,13 @@ ui <- navbarPage(
       )
     ),
 
-  # sähköjutut ---------------------------
+# sähköjutut ---------------------------
   navbarMenu(
     title = "Kotitalouksien sähkönkulutus",
     icon = icon("plug"),
 
 
-    ### aikasarjapaneeli ----------------------
+## aikasarjapaneeli ----------------------
     tabPanel(
       title = "Kotitalouksien kokonaiskulutuksen trendit",
       sidebarLayout(
@@ -188,7 +190,7 @@ ui <- navbarPage(
           )
         )
       ),
-    ## desiilipaneeli --------------------------------
+## desiilipaneeli --------------------------------
     tabPanel(
       title = "Sosioekonomisten muuttujien tarkastelu",
       sidebarLayout(
@@ -263,9 +265,9 @@ ui <- navbarPage(
               )
             )
           )
-      ),
- ## kuntapaneeli ------------------------
+        ),
 
+ ## kuntapaneeli ------------------------
  if(lisaa_kunta_hommat) {
     tabPanel(
       title = "Kuntakohtainen tarkastelu",
@@ -349,10 +351,6 @@ ui <- navbarPage(
       column(width = 1),
       column(includeMarkdown("tekstit/dataselite.md"), width = 10),
       column(width = 1)
-      ),
-    tabPanel(
-      title = "Linkkejä",
-      "Työn alla"
       )
     )
   )
