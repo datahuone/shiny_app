@@ -8,6 +8,7 @@ library(lubridate, warn.conflicts = F)
 library(gghighlight, warn.conflicts = F)
 library(httr, warn.conflicts = F)
 library(jsonlite, warn.conflicts = F)
+library(shiny.router)
 
 source("funktiot.R", encoding = 'UTF-8')
 
@@ -104,6 +105,7 @@ ui <- navbarPage(
       },
 
       windowTitle = "Datahuone",
+      id = "navbarID",
 
 
 
@@ -113,6 +115,7 @@ ui <- navbarPage(
 # Etusivu -----------------------------------------------
     title = "Etusivu",
     icon = icon('house'),
+    value = 'sahkonkulutus',
 
     fluidPage(
       fluidRow(
@@ -143,6 +146,7 @@ ui <- navbarPage(
 ## aikasarjapaneeli ----------------------
     tabPanel(
       title = "Kotitalouksien kokonaiskulutuksen trendit",
+      value = "sahkonkulutus/kokonaiskulutus",
       sidebarLayout(
         sidebarPanel(
           dateRangeInput(
@@ -193,6 +197,7 @@ ui <- navbarPage(
 ## desiilipaneeli --------------------------------
     tabPanel(
       title = "Sosioekonomisten muuttujien tarkastelu",
+      value = "sahkonkulutus/sosioekonomiset",
       sidebarLayout(
           sidebarPanel(
             selectInput(
@@ -304,6 +309,7 @@ ui <- navbarPage(
 
     tabPanel(
       title = "Taustaa datasta",
+      value = "sahkonkulutus/tausta",
       h2("Oletukset datan taustalla:"),
       column(width = 1),
       column(includeMarkdown("tekstit/dataselite.md"), width = 10),
@@ -319,9 +325,27 @@ ui <- navbarPage(
 # SERVERI ------------------------------------------------
 server <- function(input, output, session) {
 
+  ## url päivitys ---------------------------------
+
+  observeEvent(session$clientData$url_hash, {
+    currentHash <- sub("#", "", session$clientData$url_hash)
+    if(is.null(input$navbarID) || !is.null(currentHash) && currentHash != input$navbarID){
+      freezeReactiveValue(input, "navbarID")
+      updateNavbarPage(session, "navbarID", selected = currentHash)
+    }
+  }, priority = 1)
+
+  observeEvent(input$navbarID, {
+    currentHash <- sub("#", "", session$clientData$url_hash) # might need to wrap this with `utils::URLdecode` if hash contains encoded characters (not the case here)
+    pushQueryString <- paste0("#", input$navbarID)
+    if(is.null(currentHash) || currentHash != input$navbarID){
+      freezeReactiveValue(input, "navbarID")
+      updateQueryString(pushQueryString, mode = "push", session)
+    }
+  }, priority = 0)
+
 
   # Reaktiiviset datasetit ----------------------
-
   boxplot_data <- reactive({
     return(boxplotlista[[input$soptyyp]][[input$kk]])
   })
