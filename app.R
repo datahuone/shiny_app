@@ -267,52 +267,9 @@ ui <- navbarPage(
           )
         ),
 
- ## kuntapaneeli ------------------------
- if(lisaa_kunta_hommat) {
-    tabPanel(
-      title = "Kuntakohtainen tarkastelu",
-      sidebarLayout(
-        sidebarPanel(
-          selectInput(
-            'kotkunt',
-            label = "Kotikuntasi",
-            choices = Kunnan_nimet %>% filter(kunnan_nimi != "Luhanka") %>% pull(),
-            selected = "Helsinki"),
-          selectInput(
-            'kunt_kk',
-            label = 'Kuukausi',
-            choices = sort(kuukaudet),
-            selected = max(kuukaudet)
-          ),
-          numericInput(
-            "kwh_kulutus",
-            label = "Syötä asuntokuntasi kokonaissähkönkulutus verrataksesi muihin kotikuntasi asuntokuntiin:",
-            value = 100,
-            min = 0,
-            max = 10000,
-            step = 50)
-        ),
-        mainPanel(
-          fluidRow(
-            valueBoxOutput("kulutus_desiili", width = 4),
-            valueBoxOutput("kunta_mediaanit", width = 4),
-            valueBoxOutput("kuntien_suhteet", width = 4)
-          ),
-          fluidRow(
-            column(width = 1),
-            column(
-              plotOutput("kuntakuvaaja"),
-              width = 10
-            ),
-            column(width = 1)
-          ),
-        )
-        )
-
-    )
-   },
      tabPanel(
        title = "Reaaliaikainen sähkönkäyttötilanne",
+       value = "sahkonkulutus/reaaliaikainen",
        fluidPage(
          fluidRow(
            h1("Reaaliaikainen sähkönkäyttötilanne")
@@ -555,35 +512,7 @@ server <- function(input, output, session) {
     })
 
 
-  ## kuntasivu -------------------------------------------------------
 
-  output$kulutus_desiili <- shinydashboard::renderValueBox({
-    value <- mean(kunta_data()[input$kunt_kk] <= input$kwh_kulutus)
-
-    shinydashboard::valueBox(prosenttierotin(value-0.05),
-                             "Kotikuntasi asuntokunnista\nkuluttaa vähemmän sähköä")
-  })
-
-  output$kunta_mediaanit <- shinydashboard::renderValueBox({
-    median <- kunta_kvantiilit[[input$kunt_kk]] %>%
-      filter(kunnan_nimi == input$kotkunt) %>%
-      select(Q_50) %>%
-      pull()
-
-    shinydashboard::valueBox(paste0(round(median), ' kWh'), paste0("Kotikuntasi asuntokuntien mediaanikulutus ",
-                                            kuukaudet_suom(input$kunt_kk),"ssa "))
-  })
-
-  output$kuntien_suhteet <- shinydashboard::renderValueBox({
-    median <- kunta_kvantiilit[[input$kunt_kk]] %>%
-      filter(kunnan_nimi == input$kotkunt) %>%
-      select(Q_50) %>%
-      pull()
-
-    kuntien_lkm <- sum(kunta_kvantiilit[[input$kunt_kk]]$Q_50 <= median)
-
-    shinydashboard::valueBox(paste0(kuntien_lkm,'.'), "Pienin mediaanikulutus Suomessa")
-  })
 
   # Plotit ----------------------------------------
 
@@ -876,38 +805,6 @@ server <- function(input, output, session) {
 
     })
 
-  output$kuntakuvaaja <- renderPlot({
-
-    kunta_data() %>%
-      pivot_longer(-kvantiili) %>%
-      group_by(name) %>%
-      mutate(value_diff = value - lag(value, default = value[1]),
-             kvantiili = factor(kvantiili, sort(unique(kvantiili), decreasing = TRUE))) %>%
-      ungroup() %>%
-      ggplot(aes(x = as.Date(name),
-                 y = value_diff,
-                 fill = kvantiili),
-             colour = 'black')+
-      geom_area(position = 'stack')+
-      geom_point(aes(
-        x = as.Date(input$kunt_kk),
-        y = input$kwh_kulutus,
-        alpha = "Sinun kulutuksesi"),
-        size = 5,
-        colour = "red") +
-      guides(fill="none")+
-      scale_alpha_manual(name = NULL,
-                         values = 1) +
-      scale_x_date(name = NULL,
-                   label = formatoi_kuukaudet_plot) +
-      scale_y_continuous(name = "Sähkönkulutus kWh",
-                         label = tuhaterotin)+
-      theme(legend.position = 'bottom',
-            axis.text = element_text(size = 14),
-            axis.title = element_text(size = 14),
-            legend.text = element_text(size= 14)) +
-      scale_fill_viridis_d()
-  })
 
 ## boxplotit ----------------------------------------
   output$boxplot <- renderPlot({
