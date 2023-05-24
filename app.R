@@ -115,7 +115,7 @@ ui <- navbarPage(
 # Etusivu -----------------------------------------------
     title = "Etusivu",
     icon = icon('house'),
-    value = 'sahkonkulutus',
+    value = ,
 
     fluidPage(
       fluidRow(
@@ -123,10 +123,7 @@ ui <- navbarPage(
       ),
       fluidRow(
         column(
-          includeMarkdown(ifelse(lisaa_kunta_hommat,
-                                 "tekstit/sahko_leipateksti_kunnallinen.md",
-                                 "tekstit/sahko_leipateksti.md")),
-
+          includeMarkdown("tekstit/sahko_leipateksti.md"),
           width = 6
           ),
         column(
