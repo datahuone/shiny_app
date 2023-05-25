@@ -14,12 +14,14 @@ tuhaterotin <- function(x){
          scientific = FALSE)
 }
 
+
 #' Prosenttierotin
 #'
 #' Formatoi prosenttiluvut oikeaoppisesti. Lisäämällä välin luvun sekä % väliin.
 #'
 #' @param x Luku 0,1 väliltä
 #' @return str
+
 prosenttierotin <- function(x){
   paste0(tuhaterotin(x*100), " %")
 }
@@ -183,3 +185,21 @@ lataa_kaikki <- function(){
     mutate(name = names(fingrid_sanakirja()))
 
 }
+
+# Ukraina ========================================================
+
+dark_green <- "#234721"
+light_green <- "#AED136"
+dark_blue <- "#393594"
+light_blue <- "#8482BD"
+dark_red <- "#721D41"
+light_red <- "#CC8EA0"
+yellow <- "#FBE802"
+orange <- "#F16C13"
+light_orange <- "#FFF1E0"
+
+colors <- c(dark_green, light_green, dark_blue, light_blue, dark_red, light_red, yellow, orange, light_orange)
+
+
+
+

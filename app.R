@@ -8,6 +8,7 @@ library(lubridate, warn.conflicts = F)
 library(gghighlight, warn.conflicts = F)
 library(httr, warn.conflicts = F)
 library(jsonlite, warn.conflicts = F)
+library(plotly, warn.conflicts = F)
 
 source("funktiot.R", encoding = 'UTF-8')
 
@@ -68,6 +69,36 @@ vuorokausi_sitten <- viikko_data_fd %>%
     unit = "hours"))
 
 
+# ladataan ukrainadata ----------------------------------------------------
+
+## ukraina data
+kotikunta <-  read_csv("./data/summaries/sex_month_pop.csv")
+ei_kotikuntaa <-  read_csv("./data/summaries/age_sex_month_nonpop.csv")
+ikajakauma <- read_csv("./data/summaries/age_gender.csv")
+toimialat <- read_csv("./data/summaries/industry.csv")
+ammatit <- read_csv("./data/summaries/occupations.csv")
+
+## age group to factor
+levels <- c("alle 15","15–19", "20–24", "25–54", "55–64", "yli 64")
+ei_kotikuntaa <- ei_kotikuntaa %>% mutate(age_group = factor(age_group, levels = levels))
+
+levels <- ikajakauma %>% distinct(age_group) %>% pull()
+ikajakauma <- ikajakauma %>% mutate(age_group = factor(age_group, levels = levels))
+
+## industry to factor
+levels <- toimialat %>% distinct(toimiala) %>% pull()
+toimialat <- toimialat %>% mutate(toimiala = factor(toimiala, levels = levels))
+
+## profession to factor
+levels <- ammatit %>% distinct(nimi_fi) %>% pull()
+ammatit <- ammatit %>% mutate(nimi_fi = factor(nimi_fi, levels = levels))
+
+
+
+## ukraina kuva-asetukset
+alpha_u <- 0.8
+font_size <- 20
+
 # UI -------------------------------------
 ui <- navbarPage(
 
@@ -117,20 +148,7 @@ ui <- navbarPage(
     fluidPage(
       fluidRow(
         includeMarkdown("tekstit/etusivu.md")
-      ),
-      fluidRow(
-        column(
-          includeMarkdown(ifelse(lisaa_kunta_hommat,
-                                 "tekstit/sahko_leipateksti_kunnallinen.md",
-                                 "tekstit/sahko_leipateksti.md")),
-
-          width = 6
-          ),
-        column(
-          plotOutput("piirakkaplot"),
-          width = 6
-          )
-        )
+      )
       )
     ),
 
@@ -139,8 +157,26 @@ ui <- navbarPage(
     title = "Kotitalouksien sähkönkulutus",
     icon = icon("plug"),
 
-
-## aikasarjapaneeli ----------------------
+    ### sivu ----------------------
+    tabPanel(title = "sivu",
+      fluidPage(
+        fluidRow(
+          column(includeMarkdown(ifelse(lisaa_kunta_hommat,
+                                   "tekstit/sahko_leipateksti_kunnallinen.md",
+                                   "tekstit/sahko_leipateksti.md")),
+           width = 6),
+          column(
+            plotOutput("piirakkaplot"),
+            width = 6)
+          ),
+      fluidRow(
+      h2("Oletukset datan taustalla:"),
+      column(width = 1),
+      column(includeMarkdown("tekstit/dataselite.md"), width = 10),
+      column(width = 1)
+      ))
+    ),
+    ### aikasarjapaneeli ----------------------
     tabPanel(
       title = "Kotitalouksien kokonaiskulutuksen trendit",
       sidebarLayout(
@@ -340,20 +376,105 @@ ui <- navbarPage(
      )
  ),
 
- ## Lisätietosivut ---------------------------------------------
-  navbarMenu(
-    title = "Lisätietoja",
-    icon = icon('circle-info'),
+ ## ukrainalaiset ----------------------------------------------
+ navbarMenu(
 
-    tabPanel(
-      title = "Taustaa datasta",
-      h2("Oletukset datan taustalla:"),
-      column(width = 1),
-      column(includeMarkdown("tekstit/dataselite.md"), width = 10),
-      column(width = 1)
-      )
-    )
-  )
+
+   title = "Työmarkkinat",
+   icon = icon('briefcase'),
+
+
+   tabPanel(
+     title = "Ukrainalaiset Suomessa",
+     tabsetPanel(
+
+       tabPanel("Ukrainalaiset Suomessa",
+       fluidPage(
+         column(includeMarkdown("tekstit/ukraina_etusivu.md"), width = 6),
+         column( h4("Tilapäisen suojelun piirissä olevien ukrainalaisten ikä- ja sukupuolijakauma"),
+                 plotlyOutput("ikaryhma"), width = 6)
+       )),
+       tabPanel("Taustatietoja",
+                fluidPage(
+
+                  sidebarLayout(
+                    # sivupaneelin valinnat
+                    sidebarPanel(
+                      selectInput("vaesto", "Valitse kohdejoukko",
+                                  choices= c("kaikki ukrainalaiset", "kotikunnan saaneet")),
+                      selectInput("jaottelu", "Lisää jaottelu ",
+                                  choices= c("-", "ikäryhmä", "sukupuoli")),
+                      checkboxInput(inputId = "osuus",
+                                    label = "prosentteina",
+                                    value = FALSE),
+                      p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon."),
+                      p("Mikäli jonkin kuukauden tiedot eivät ole näkyvissä, tiedot on jouduttu peittämään tietosuojasyistä")
+                    ),
+
+                    # Create a spot for the barplot
+                    mainPanel(
+                      fluidRow(h2( textOutput('taustatieto_otsikko'))),
+                      plotOutput("basic_plot"),
+                      fluidRow(downloadButton("download_taustatiedot", "Lataa csv"))
+                    )
+                  )
+
+                ) ## close fluid page
+       ), ## close tab panel
+
+
+       tabPanel("Toimialat ja ammatit",
+                fluidPage(
+
+                  sidebarLayout(
+                    # sivupaneelin valinnat
+                    sidebarPanel(
+                      selectInput("alavaiammatti", "Valitse kategoria",
+                                  choices= c("toimialat", "ammattinimikkeet")),
+                      selectInput("top", "Valitse tarkasteltavien alojen lkm",
+                                  choices= c(1:8),
+                                  selected = 5),
+                      p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon.")
+                    ),
+
+                    # Create a spot for the barplot
+                    mainPanel(
+                      fluidRow(h2( textOutput('toimialat_otsikko'))),
+                      plotOutput("ala_ammatti_plot"),
+                      fluidRow(downloadButton("download_alat_ja_ammatit", "Lataa csv"))
+                    )
+                  )
+
+                ) ## close fluid page
+
+                ) ## close tab panel
+     ) ## close tabset panel
+   ) ## close tab panel
+ )
+
+ #, ## close navbarmenu
+
+
+
+# ## Lisätietosivut ---------------------------------------------
+#  navbarMenu(
+#    title = "Lisätietoja",
+#    icon = icon('circle-info'),
+#
+#    tabPanel(
+#      title = "Taustaa datasta",
+#      h2("Oletukset datan taustalla:"),
+#      column(width = 1),
+#      column(includeMarkdown("tekstit/dataselite.md"), width = 10),
+#      column(width = 1)
+#      ),
+#    tabPanel(
+#      title = "Linkkejä",
+#      "Työn alla"
+#      )
+#    )
+ )
+
 
 
 
@@ -586,6 +707,10 @@ server <- function(input, output, session) {
   })
 
   # Plotit ----------------------------------------
+
+
+
+
 
   ## piirakkaplot -------------------------------------------
 
@@ -1540,6 +1665,358 @@ server <- function(input, output, session) {
       )
     }
     })
+
+  # ukraina ----------------------------------
+  ## etusivu ---------------------------------
+  output$ikaryhma <- renderPlotly({
+
+    ## create plot
+   ikajakauma %>%
+      ggplot() +
+      geom_col(aes(x = age_group, y =n, fill = sukupuoli), alpha = alpha_u, position = "dodge") +
+      scale_fill_manual(values = c(light_blue, orange)) +
+      scale_x_discrete(name = "ikäryhmä") +
+      scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
+      theme_light() +
+      theme(legend.position = "bottom",
+            legend.title = element_blank(),
+            text = element_text(size = font_size),
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank())
+    ggplotly()
+
+
+  })
+  ## taustatietoja ---------------------------
+  ukraina_basics_data <- reactive({
+
+    ## filter
+    if(input$vaesto == "kotikunnan saaneet") {
+      data <- kotikunta
+    } else {
+      data <- ei_kotikuntaa
+    }
+
+    return(data)
+
+  })
+
+  output$basic_plot <- renderPlot({
+
+    data <-  ukraina_basics_data()
+
+    if(input$jaottelu == "-") {
+
+      ## distinct
+      summary <- data %>%
+        distinct(tilasto_time, n_total)
+
+      ## plot
+      summary %>%
+        ggplot(aes(x = tilasto_time)) +
+        geom_col(aes(y = n_total), fill = orange, alpha = alpha_u) +
+        scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
+        scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
+        theme_light() +
+        theme(legend.position = "bottom",
+              text = element_text(size = font_size),
+              legend.title = element_blank(),
+              panel.grid.major.x = element_blank(),
+              panel.grid.minor.x = element_blank(),
+              plot.caption = element_text(hjust = 0),
+              axis.text.x = element_text(angle = 45, hjust = 1, size = font_size))
+
+
+    } else if(input$jaottelu == "ikäryhmä") {
+
+      if(input$vaesto == "kotikunnan saaneet") { "ei voida laskea"}
+      else {
+
+      ## summarise
+      summary <- data %>%
+        group_by(tilasto_time, n_total, age_group) %>%
+        summarise(n = sum(n))
+
+
+      if (input$osuus) {
+
+        ## plot
+        summary %>%
+          mutate(n = n/n_total*100) %>%
+          ggplot(aes(x = tilasto_time)) +
+          geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
+          scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
+          scale_fill_manual(values = colors) +
+          scale_y_continuous(name = "prosenttia", labels = tuhaterotin) +
+          theme_light() +
+          theme(legend.position = "bottom",
+                legend.title = element_blank(),
+                text = element_text(size = font_size),
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor.x = element_blank(),
+                plot.title = element_text(hjust = 0.5, size = 13),
+                plot.caption = element_text(hjust = 0),
+                axis.text.x = element_text(angle = 45, hjust = 1))
+
+      } else{
+
+        ## plot
+        summary %>%
+          ggplot(aes(x = tilasto_time)) +
+          geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
+          scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
+          scale_fill_manual(values = colors) +
+          scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
+          theme_light() +
+          theme(legend.position = "bottom",
+                legend.title = element_blank(),
+                text = element_text(size = font_size),
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor.x = element_blank(),
+                plot.title = element_text(hjust = 0.5, size = 13),
+                plot.caption = element_text(hjust = 0),
+                axis.text.x = element_text(angle = 45, hjust = 1))
+
+      }
+      }
+
+
+    } else if (input$jaottelu == "sukupuoli"){
+
+      ## summarise
+      summary <- data %>%
+        group_by(tilasto_time, n_total, sukupuoli) %>%
+        summarise(n = sum(n))
+
+
+      if (input$osuus) {
+
+        ## plot
+        summary %>%
+          mutate(n = n/n_total*100) %>%
+          ggplot(aes(x = tilasto_time)) +
+          geom_col(aes(y = n, fill = sukupuoli), alpha = alpha_u) +
+          scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
+          scale_fill_manual(values = c(light_blue, orange)) +
+          scale_y_continuous(name = "prosenttia", labels = tuhaterotin) +
+          theme_light() +
+          theme(legend.position = "bottom",
+                legend.title = element_blank(),
+                text = element_text(size = font_size),
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor.x = element_blank(),
+                plot.title = element_text(hjust = 0.5, size = 13),
+                plot.caption = element_text(hjust = 0),
+                axis.text.x = element_text(angle = 45, hjust = 1))
+
+      } else{
+
+        ## plot
+        summary %>%
+          ggplot(aes(x = tilasto_time)) +
+          geom_col(aes(y = n, fill = sukupuoli), position = "dodge", alpha = alpha_u) +
+          scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
+          scale_fill_manual(values = c(light_blue, orange)) +
+          scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
+          theme_light() +
+          theme(legend.position = "bottom",
+                legend.title = element_blank(),
+                text = element_text(size = font_size),
+                panel.grid.major.x = element_blank(),
+                panel.grid.minor.x = element_blank(),
+                plot.title = element_text(hjust = 0.5, size = 13),
+                plot.caption = element_text(hjust = 0),
+                axis.text.x = element_text(angle = 45, hjust = 1))
+
+      }
+
+
+    }
+
+  })
+
+
+  ## alat ja ammatit -------------------------
+  ukraina_alat_ja_ammatit <- reactive({
+
+    ## filter
+    if(input$alavaiammatti == "toimialat") {
+
+      ## yleisimmät toimialat
+      top <- toimialat %>%
+        group_by(toimiala) %>%
+        dplyr::summarise(n = mean(n)) %>%
+        arrange(desc(n)) %>% slice(1:input$top) %>%
+        pull(toimiala)
+
+      ## rajaa
+      data <- toimialat %>%
+        filter(tilasto_time > ymd("2022-04-01")) %>%
+        filter(toimiala %in% top) %>%
+        mutate(ala = toimiala)
+
+
+    } else {
+
+      ## yleisimmät ammatit
+      top <- ammatit %>%
+        group_by(prof_l3) %>%
+        dplyr::summarise(n = mean(n))  %>%
+        arrange(desc(n)) %>% slice(1:input$top) %>%
+        pull(prof_l3)
+
+      ## rajaa
+      data <- ammatit %>%
+        filter(tilasto_time > ymd("2022-04-01")) %>%
+        filter(prof_l3 %in% top) %>%
+        mutate(ala = nimi_fi)
+    }
+
+    return(data)
+
+  })
+  output$ala_ammatti_plot <- renderPlot({
+
+    ## get data
+    data <-  ukraina_alat_ja_ammatit()
+
+    ## plot
+    data %>%
+      ggplot(aes(x = tilasto_time)) +
+      scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
+      geom_col(aes(y = n, fill = ala), alpha = alpha_u) +
+      scale_fill_manual(values = c(colors, "black")) +
+      scale_y_continuous(name = "henkilöä") +
+      theme_light() +
+      theme(legend.position = "bottom",
+            legend.title = element_blank(),
+            text = element_text(size = font_size),
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            plot.title = element_text(hjust = 0.5, size = 13),
+            plot.caption = element_text(hjust = 0),
+            axis.text.x = element_text(angle = 45, hjust = 1))
+
+  })
+
+
+
+  ## otsikot --------------------------------
+  output$toimialat_otsikko <- renderText({
+
+    lkm <- input$top
+
+    if(lkm == 1){
+      if(input$alavaiammatti == "toimialat") {
+        paste0( "yleisin toimiala")
+      } else {
+        paste0("yleisin ammattinimike")
+      }
+    } else {
+      if(input$alavaiammatti == "toimialat"){
+        mika_ala <- "toimialaa"
+      } else {
+        mika_ala <- "ammattinimikettä"
+      }
+      paste0(lkm, " yleisintä ", mika_ala)
+    }
+
+
+  })
+
+  output$taustatieto_otsikko <- renderText({
+
+    if (input$osuus & input$jaottelu == "-") {
+      abs <- "lukumäärä"
+    } else if (input$osuus){
+      abs <- "osuus"
+    } else {
+      abs <- "lukumäärä"
+    }
+
+    if(input$vaesto == "kotikunnan saaneet"){
+      kotikunta <- "kotikunnan saaneiden"
+    } else {
+      kotikunta <- ""
+    }
+
+    paste0("1.3.2022 jälkeen saapuneiden ", kotikunta, " ukrainalaisten ", abs)
+  })
+
+  ## downloaderit --------------------------------
+  output$download_taustatiedot <-downloadHandler(
+
+    filename = function(){
+      if(input$vaesto == "kotiunnan saaneet"){
+        return(paste0("kotikunnan_saaneet_ukrainalaiset.csv"))
+      } else {
+        return(paste0("kaikki_ukrainalaiset.csv"))
+      }
+
+    },
+    content = function(file){
+
+      ## get the data
+      data <- ukraina_basics_data()
+
+      if(input$jaottelu == "-") {
+
+        ## distinct
+        summary <- data %>%
+          distinct(tilasto_time, n_total) %>%
+          rename(c("aika" = "tilasto_time", "n" = "n_total"))
+
+      } else if(input$jaottelu == "ikäryhmä") {
+
+        ## summarise
+        summary <- data %>%
+          group_by(tilasto_time, n_total, age_group) %>%
+          summarise(n = sum(n)) %>%
+          mutate(osuus = n/n_total*100) %>%
+          mutate(osuus = round(osuus, 2)) %>%
+          rename(c("aika" = "tilasto_time", "ikäryhmä" = "age_group"))
+
+      } else if (input$jaottelu == "sukupuoli"){
+
+        ## summarise
+        summary <- data %>%
+          group_by(tilasto_time, n_total, sukupuoli) %>%
+          summarise(n = sum(n)) %>%
+          mutate(osuus = n/n_total*100) %>%
+          mutate(osuus = round(osuus, 2)) %>%
+          rename(c("aika" = "tilasto_time"))
+
+      }
+
+      write.csv(summary, file, row.names = F, fileEncoding = "UTF-8")
+    }
+
+  )
+
+  output$download_alat_ja_ammatit <-downloadHandler(
+
+    filename = function(){
+      if(input$alavaiammatti == "toimialat"){
+        return(paste0("toimialat.csv"))
+      } else {
+        return(paste0("ammattinimikkeet.csv"))
+      }
+
+    },
+    content = function(file){
+
+      ## get the data
+      data <- ukraina_alat_ja_ammatit()
+
+      ## rename variables
+      data <- data %>% select(-ala) %>%
+        rename(any_of(c("aika" = "tilasto_time", "ammattikoodi" = "prof_l3")))
+
+      write.csv(data, file, row.names = F, fileEncoding = "ISO-8859-1")
+    }
+
+  )
+
 
   # downloaderit ----------------------------------
 
