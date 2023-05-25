@@ -1,4 +1,4 @@
-# Datahuoneen Shiny app - Fingrid Datahubin tilastotiedot interaktiivisessa muodossa 
+# Datahuoneen Shiny app 
 
 Sivun tarkoituksena on tuoda nähtäville Suomen kotitalouksien sähkönkulutustietoja. Tiedot on kerätty Fingrid Datahubista, joka on Suomen sähköjärjestelmän keskitetty tietojärjestelmä. Lisäksi tietoihin on yhdistetty Tilastokeskuksen rekisteriaineistoja, jolloin käyttäjät voivat tutkia sähkönkulutuksen tilastotietoja monipuolisesti. Tämä verkkosivusto on suunniteltu helpoksi käyttää ja kaikki tiedot ovat avoimesti saatavilla.
 
