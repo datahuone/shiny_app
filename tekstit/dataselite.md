@@ -1,4 +1,4 @@
-# Taustaa datasta
+## Taustaa datasta
 
 ### Avoin sähködata
 
@@ -6,9 +6,6 @@ Avoin data on peräisin Fingridin hallinnoimasta Avoin Data API:sta, joka tarjoa
 
 Tämä API on löydettävissä osoitteesta [https://data.fingrid.fi/fi/](https://data.fingrid.fi/fi/).
 
-### Säädata
-
-Säädatan lähteenä käytämme Ilmatieteen laitoksen ylläpitämää fmi2 R-pakettia, joka mahdollistaa API-yhteydenoton Ilmatieteen laitoksen palveluihin. Tarkemmat tiedot tästä R-paketista voi löytää github-sivuilta [https://github.com/rOpenGov/fmi2](https://github.com/rOpenGov/fmi2).
 
 ### Asuntokuntakohtainen sähkönkäyttö 
 
