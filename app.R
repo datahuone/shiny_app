@@ -150,7 +150,7 @@ ui <- navbarPage(
 
     ### sivu ----------------------
     tabPanel(
-      title = "sivu",
+      title = "Etusivu",
       value = sahk_etusivu_url,  #valueta käyteteään url muodostamiseen
       fluidPage(
         fluidRow(h1("Kotitalouksien sähkönkulutus - Fingrid Datahubin tilastotietojen tarkastelu")),
