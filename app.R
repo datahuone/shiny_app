@@ -75,7 +75,7 @@ ammatit <- ammatit %>% mutate(nimi_fi = factor(nimi_fi, levels = levels))
 
 ## ukraina kuva-asetukset
 alpha_u <- 0.8
-font_size <- 20
+font_size <- 15
 
 # UI -------------------------------------
 ui <- navbarPage(
@@ -1662,19 +1662,22 @@ server <- function(input, output, session) {
   output$ikaryhma <- renderPlotly({
 
     ## create plot
-   ikajakauma %>%
+    p <- ikajakauma %>%
       ggplot() +
       geom_col(aes(x = age_group, y =n, fill = sukupuoli), alpha = alpha_u, position = "dodge") +
       scale_fill_manual(values = c(light_blue, orange)) +
       scale_x_discrete(name = "ikäryhmä") +
       scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
       theme_light() +
-      theme(legend.position = "bottom",
-            legend.title = element_blank(),
-            text = element_text(size = font_size),
-            panel.grid.major.x = element_blank(),
-            panel.grid.minor.x = element_blank())
-    ggplotly()
+      theme(
+        legend.title = element_blank(),
+        text = element_text(size = font_size),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = font_size))
+
+    ggplotly(p) %>% layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center'))
+
 
 
   })
