@@ -101,6 +101,10 @@ ui <- navbarPage(
 
           .navbar {min-height:45px !important;}
 
+          .custom-label {
+            font-size: 50px;
+          }
+
           "
           )
         )
@@ -137,27 +141,25 @@ ui <- navbarPage(
             id = "btn_ymp",
             class = "btn btn-default action-button",
             tags$div(
-              label = 'Sähkönkulutus',
               style = "width: 300px; height: 300px;",
               HTML('<img src="Ikoni_ympäristö.svg" width="100%" height="100%"/>')
-              ),
-            "Siirry sähkönkäytön seurantaosioon"
             ),
-          width = 6
+            tags$div(class="custom-label", "Siirry sähkönkäytön seurantaosioon")  # Add the class here
           ),
+          width = 6
+        ),
         column(
           tags$div(
             id = "btn_tyo",
             class = "btn btn-default action-button",
             tags$div(
-              label = 'Sähkönkulutus',
               style = "width: 300px; height: 300px;",
-              HTML('<img src="Ikoni_yritykset.svg" width="100%" height="100%"/>')
+              HTML('<img src="Ikoni_koulutus.svg" width="100%" height="100%"/>')
             ),
-            'Siirry työmarkkinaosioon'
+            tags$div(class="custom-label", 'Siirry työmarkkinaosioon')  # And here
           ),
           width = 6
-        )
+          )
         )
       )
     ),
