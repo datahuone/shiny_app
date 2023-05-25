@@ -138,6 +138,7 @@ ui <- navbarPage(
       title = "sivu",
       value = sahk_etusivu_url,
       fluidPage(
+        fluidRow(h1("Kotitalouksien sähkönkulutus - Fingrid Datahubin tilastotietojen tarkastelu")),
         fluidRow(
           column(includeMarkdown("tekstit/sahko_leipateksti.md"),
            width = 6),
@@ -146,7 +147,6 @@ ui <- navbarPage(
             width = 6)
           ),
       fluidRow(
-      h2("Oletukset datan taustalla:"),
       column(includeMarkdown("tekstit/dataselite.md"), width = 6),
       column(width = 6)
       ))
