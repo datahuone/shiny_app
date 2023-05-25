@@ -11,12 +11,9 @@ library(jsonlite, warn.conflicts = F)
 library(plotly, warn.conflicts = F)
 library(shiny.router)
 
-
 source("funktiot.R", encoding = 'UTF-8')
 
 lisaa_logo <- F #lisää datahuonelogong yläoikealle
-
-lisaa_kunta_hommat <- F
 
 ### ladataan data ----------------
 
@@ -32,14 +29,22 @@ Kunnan_nimet <- kunnat %>% distinct(kunnan_nimi)
 boxplotit_asuntokunnat <- lataa_data("asuntokunnittain_boxplotit", kuukaudet)
 aikasarja_data_raw <- feather::read_feather("data/aikasarjat/kulutus_kk.feather")
 
-#luo url-juuren sahkokaytto sivuille
+# URL osoitteet -----------------------------------------
+
+#url-juuri sahkokaytto sivuille
 sahk_etusivu_url <- "sahkonkulutus"
 
-#alla url-lehdet sivuille
+#url-lehdet sivuille
 sah_kokonaiskulutus <- paste0(sahk_etusivu_url,"/kokonaiskulutus")
 sah_desiili_url <- paste0(sahk_etusivu_url,"/sosioekonomiset")
 sah_reaaliaikainen_url <- paste0(sahk_etusivu_url,"/reaaliaikainen")
 sah_tausta_url <- paste0(sahk_etusivu_url,"/tausta")
+
+#url-juuri tyomarkkinoille
+tyomarkkinat_etusivu_url <- "tyomarkkinat"
+
+#url-lehdet tyomarkkinoille
+tyomarkkinat_ukrainat_url <- paste0(tyomarkkinat_etusivu_url, "/ukrainalaiset")
 
 
 # ladataan ukrainadata ----------------------------------------------------
@@ -95,6 +100,7 @@ ui <- navbarPage(
           }
 
           .navbar {min-height:45px !important;}
+
           "
           )
         )
@@ -118,12 +124,21 @@ ui <- navbarPage(
 # Etusivu -----------------------------------------------
     title = "Etusivu",
     icon = icon('house'),
-
+    value = 'etusivu', #valueta käyteteään url muodostamiseen
 
     fluidPage(
       fluidRow(
         includeMarkdown("tekstit/etusivu.md")
-
+        ),
+      fluidRow(
+        tags$div(
+          id = "btn",
+          class = "btn btn-default action-button",
+          tags$div(
+            style = "width: 30%; height: 100px;",
+            HTML('<img src="Ikoni_koulutus.svg" width="100%" height="100%"/>')
+          )
+        )
         )
       )
     ),
@@ -136,7 +151,7 @@ ui <- navbarPage(
     ### sivu ----------------------
     tabPanel(
       title = "sivu",
-      value = sahk_etusivu_url,
+      value = sahk_etusivu_url,  #valueta käyteteään url muodostamiseen
       fluidPage(
         fluidRow(h1("Kotitalouksien sähkönkulutus - Fingrid Datahubin tilastotietojen tarkastelu")),
         fluidRow(
@@ -154,7 +169,7 @@ ui <- navbarPage(
     ### aikasarjapaneeli ----------------------
     tabPanel(
       title = "Kotitalouksien kokonaiskulutuksen trendit",
-      value = sah_kokonaiskulutus,
+      value = sah_kokonaiskulutus,  #valueta käyteteään url muodostamiseen
 
       sidebarLayout(
         sidebarPanel(
@@ -206,7 +221,7 @@ ui <- navbarPage(
 ## desiilipaneeli --------------------------------
     tabPanel(
       title = "Sosioekonomisten muuttujien tarkastelu",
-      value = sah_desiili_url,
+      value = sah_desiili_url,  #valueta käyteteään url muodostamiseen
       sidebarLayout(
           sidebarPanel(
             selectInput(
@@ -311,7 +326,7 @@ ui <- navbarPage(
      )
  ),
 
- ## ukrainalaiset ----------------------------------------------
+ # ukrainalaiset ----------------------------------------------
  navbarMenu(
 
 
@@ -321,8 +336,8 @@ ui <- navbarPage(
 
    tabPanel(
      title = "Ukrainalaiset Suomessa",
+     value = tyomarkkinat_ukrainat_url,
      tabsetPanel(
-
        tabPanel("Ukrainalaiset Suomessa",
        fluidPage(
          column(includeMarkdown("tekstit/ukraina_etusivu.md"), width = 6),
