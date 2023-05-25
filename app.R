@@ -130,14 +130,33 @@ ui <- navbarPage(
       fluidRow(
         includeMarkdown("tekstit/etusivu.md")
         ),
+      tags$br(), #lisätään väli etusivun ja ikonien väliin
       fluidRow(
-        tags$div(
-          id = "btn",
-          class = "btn btn-default action-button",
+        column(
           tags$div(
-            style = "width: 30%; height: 100px;",
-            HTML('<img src="Ikoni_koulutus.svg" width="100%" height="100%"/>')
-          )
+            id = "btn_ymp",
+            class = "btn btn-default action-button",
+            tags$div(
+              label = 'Sähkönkulutus',
+              style = "width: 300px; height: 300px;",
+              HTML('<img src="Ikoni_ympäristö.svg" width="100%" height="100%"/>')
+              ),
+            "Siirry sähkönkäytön seurantaosioon"
+            ),
+          width = 6
+          ),
+        column(
+          tags$div(
+            id = "btn_tyo",
+            class = "btn btn-default action-button",
+            tags$div(
+              label = 'Sähkönkulutus',
+              style = "width: 300px; height: 300px;",
+              HTML('<img src="Ikoni_yritykset.svg" width="100%" height="100%"/>')
+            ),
+            'Siirry työmarkkinaosioon'
+          ),
+          width = 6
         )
         )
       )
@@ -479,7 +498,19 @@ server <- function(input, output, session) {
     }
   })
 
+  # Ikonit etusivulla -------------------------------------------------------
 
+  observeEvent(
+    input$btn_ymp,{
+      updateTabsetPanel(session, "navbarID", selected = sahk_etusivu_url)
+    }
+  )
+
+  observeEvent(
+    input$btn_tyo,{
+      updateTabsetPanel(session, "navbarID", selected = tyomarkkinat_ukrainat_url)
+    }
+  )
 
   # Reaktiiviset datasetit ----------------------
 
@@ -2031,5 +2062,8 @@ server <- function(input, output, session) {
 }
 
 # Run the application
-shinyApp(ui = ui, server = server)
+shinyApp(
+  ui = ui,
+  server = server
+  )
 
