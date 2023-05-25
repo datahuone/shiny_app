@@ -9,64 +9,37 @@ library(gghighlight, warn.conflicts = F)
 library(httr, warn.conflicts = F)
 library(jsonlite, warn.conflicts = F)
 library(plotly, warn.conflicts = F)
+library(shiny.router)
+
 
 source("funktiot.R", encoding = 'UTF-8')
 
-lisaa_logo <- FALSE #lisää datahuonelogong yläoikealle
+lisaa_logo <- F #lisää datahuonelogong yläoikealle
 
 lisaa_kunta_hommat <- F
 
 ### ladataan data ----------------
+
+#haetaan kuukaudet mistä dataa
 kuukaudet <- feather::read_feather("data/kuukaudet_saatavilla.feather") %>%
   arrange(kuukaudet) %>%
   pull()
 
-#ladataan boxplot datat
-boxplotit_sopimukset <- lataa_data("asuntokunnittain_sopimustenlkm_boxplotit",kuukaudet)
-boxplotit_asuntokunnat <- lataa_data("asuntokunnittain_boxplotit",kuukaudet)
-boxplotit_maaraik <- lataa_data("asuntokunnittain_maaraaik_boxplotit",kuukaudet)
-boxplotit_lammitys <- lataa_data("asuntokunnittain_lammitysmuoto_boxplotit", kuukaudet)
-boxplotit_taajama <- lataa_data("asuntokunnittain_taajama_boxplotit", kuukaudet)
-boxplotit_kerrostalo <- lataa_data("asuntokunnittain_kerrostalo_boxplotit", kuukaudet)
-boxplotit_askoko <- lataa_data("asuntokunnittain_askoko_boxplotit", kuukaudet)
-
-boxplotlista <- list(
-  "-" = boxplotit_asuntokunnat,
-  "sopimuksien lukumäärä" = boxplotit_sopimukset,
-  "määräaikaiset sopimukset"= boxplotit_maaraik,
-  "lämmitys riippuvainen sähköstä" = boxplotit_lammitys,
-  "asuu taajama-alueella" = boxplotit_taajama,
-  "asuu kerrostalossa" = boxplotit_kerrostalo,
-  "asuntokunnan koko"= boxplotit_askoko
-)
-
-
-kunta_kvantiilit <- lataa_data("kunta_kvantiilit",
-                               kuukaudet)
-
 kunnat <- feather::read_feather("data/kunnat.feather")
+Kunnan_nimet <- kunnat %>% distinct(kunnan_nimi)
 
+#jostain syystä tätä ei voi pitää observe eventin sisällä
+boxplotit_asuntokunnat <- lataa_data("asuntokunnittain_boxplotit", kuukaudet)
 aikasarja_data_raw <- feather::read_feather("data/aikasarjat/kulutus_kk.feather")
 
-Kunnan_nimet <- kunnat %>%
-  distinct(kunnan_nimi)
+#luo url-juuren sahkokaytto sivuille
+sahk_etusivu_url <- "sahkonkulutus"
 
-uusin_kulutus <- lataa_viimeisin_fingrid("reaali kokonaiskulutus")
-uusin_tuotanto <- lataa_viimeisin_fingrid("reaali kokonaistuotanto")
-uusin_tuuli <- lataa_viimeisin_fingrid("reaali tuulivoima")
-uusin_vienti <- lataa_viimeisin_fingrid("reaali vienti")
-
-viikko_data_fd <- lataa_viikko_fingridistä() %>%
-  arrange(desc(time)) %>%
-  slice(which(row_number() %% 20 == 1)) %>% #otetaan vain yksi havainto joka tunnilta
-  mutate(time = lubridate::ymd_hms(time)) %>%
-  mutate(time = lubridate::floor_date(time, unit = "hours"))
-
-
-vuorokausi_sitten <- viikko_data_fd %>%
-  filter(time == lubridate::floor_date(
-    Sys.time()-lubridate::days(1),
-    unit = "hours"))
+#alla url-lehdet sivuille
+sah_kokonaiskulutus <- paste0(sahk_etusivu_url,"/kokonaiskulutus")
+sah_desiili_url <- paste0(sahk_etusivu_url,"/sosioekonomiset")
+sah_reaaliaikainen_url <- paste0(sahk_etusivu_url,"/reaaliaikainen")
+sah_tausta_url <- paste0(sahk_etusivu_url,"/tausta")
 
 
 # ladataan ukrainadata ----------------------------------------------------
@@ -135,6 +108,7 @@ ui <- navbarPage(
       },
 
       windowTitle = "Datahuone",
+      id = "navbarID",
 
 
 
@@ -145,25 +119,27 @@ ui <- navbarPage(
     title = "Etusivu",
     icon = icon('house'),
 
+
     fluidPage(
       fluidRow(
         includeMarkdown("tekstit/etusivu.md")
-      )
+
+        )
       )
     ),
 
 # sähköjutut ---------------------------
   navbarMenu(
     title = "Kotitalouksien sähkönkulutus",
-    icon = icon("plug"),
+    icon = icon('plug'),
 
     ### sivu ----------------------
-    tabPanel(title = "sivu",
+    tabPanel(
+      title = "sivu",
+      value = sahk_etusivu_url,
       fluidPage(
         fluidRow(
-          column(includeMarkdown(ifelse(lisaa_kunta_hommat,
-                                   "tekstit/sahko_leipateksti_kunnallinen.md",
-                                   "tekstit/sahko_leipateksti.md")),
+          column(includeMarkdown("tekstit/sahko_leipateksti.md"),
            width = 6),
           column(
             plotOutput("piirakkaplot"),
@@ -171,14 +147,15 @@ ui <- navbarPage(
           ),
       fluidRow(
       h2("Oletukset datan taustalla:"),
-      column(width = 1),
-      column(includeMarkdown("tekstit/dataselite.md"), width = 10),
-      column(width = 1)
+      column(includeMarkdown("tekstit/dataselite.md"), width = 6),
+      column(width = 6)
       ))
     ),
     ### aikasarjapaneeli ----------------------
     tabPanel(
       title = "Kotitalouksien kokonaiskulutuksen trendit",
+      value = sah_kokonaiskulutus,
+
       sidebarLayout(
         sidebarPanel(
           dateRangeInput(
@@ -229,6 +206,7 @@ ui <- navbarPage(
 ## desiilipaneeli --------------------------------
     tabPanel(
       title = "Sosioekonomisten muuttujien tarkastelu",
+      value = sah_desiili_url,
       sidebarLayout(
           sidebarPanel(
             selectInput(
@@ -302,53 +280,10 @@ ui <- navbarPage(
             )
           )
         ),
-
- ## kuntapaneeli ------------------------
- if(lisaa_kunta_hommat) {
-    tabPanel(
-      title = "Kuntakohtainen tarkastelu",
-      sidebarLayout(
-        sidebarPanel(
-          selectInput(
-            'kotkunt',
-            label = "Kotikuntasi",
-            choices = Kunnan_nimet %>% filter(kunnan_nimi != "Luhanka") %>% pull(),
-            selected = "Helsinki"),
-          selectInput(
-            'kunt_kk',
-            label = 'Kuukausi',
-            choices = sort(kuukaudet),
-            selected = max(kuukaudet)
-          ),
-          numericInput(
-            "kwh_kulutus",
-            label = "Syötä asuntokuntasi kokonaissähkönkulutus verrataksesi muihin kotikuntasi asuntokuntiin:",
-            value = 100,
-            min = 0,
-            max = 10000,
-            step = 50)
-        ),
-        mainPanel(
-          fluidRow(
-            valueBoxOutput("kulutus_desiili", width = 4),
-            valueBoxOutput("kunta_mediaanit", width = 4),
-            valueBoxOutput("kuntien_suhteet", width = 4)
-          ),
-          fluidRow(
-            column(width = 1),
-            column(
-              plotOutput("kuntakuvaaja"),
-              width = 10
-            ),
-            column(width = 1)
-          ),
-        )
-        )
-
-    )
-   },
+ # reaaliaikainen ----------------------------------------------
      tabPanel(
        title = "Reaaliaikainen sähkönkäyttötilanne",
+       value = sah_reaaliaikainen_url,
        fluidPage(
          fluidRow(
            h1("Reaaliaikainen sähkönkäyttötilanne")
@@ -479,12 +414,84 @@ ui <- navbarPage(
 
 
 
-
 # SERVERI ------------------------------------------------
 server <- function(input, output, session) {
 
+  ## url päivitys ---------------------------------
+  observeEvent(input$navbarID, {
+    currentHash <- sub("#", "", session$clientData$url_hash)
+    pushQueryString <- paste0("#", input$navbarID)
+    if(is.null(currentHash) || currentHash != input$navbarID){
+      freezeReactiveValue(input, "navbarID")
+      updateQueryString(pushQueryString, mode = "push", session)
+    }
+  }, priority = 0)
+
+  observeEvent(session$clientData$url_hash, {
+    currentHash <- sub("#", "", session$clientData$url_hash)
+    if(is.null(input$navbarID) || !is.null(currentHash) && currentHash != input$navbarID){
+      freezeReactiveValue(input, "navbarID")
+      updateNavbarPage(session, "navbarID", selected = currentHash)
+    }
+  }, priority = 1)
+
+  ## API-kutsut -------------------------------
+  observeEvent(input$navbarID, {
+    #hakee fingridin viikkodatan vain jos on sahkonkulutus/reaaliaikainen välilehdellä'
+    if(input$navbarID == sah_reaaliaikainen_url){
+      viikko_data_fd <<- lataa_viikko_fingridistä() %>%
+        arrange(desc(time)) %>%
+        slice(which(row_number() %% 20 == 1)) %>%
+        mutate(time = lubridate::ymd_hms(time)) %>%
+        mutate(time = lubridate::floor_date(time, unit = "hours"))
+
+
+      vuorokausi_sitten <<- viikko_data_fd %>%
+        filter(time == lubridate::floor_date(
+          Sys.time()-lubridate::days(1),
+          unit = "hours"))
+    }
+  })
+
+
+  observeEvent(input$navbarID, {
+    #hakee fingridin reaaliaikaisen datan vain jos on sahkonkulutus/reaaliaikainen tai sahkonkulutus välilehdillä'
+    if(input$navbarID %in% c(sahk_etusivu_url, sah_reaaliaikainen_url)){
+      uusin_kulutus <<- lataa_viimeisin_fingrid("reaali kokonaiskulutus")
+      uusin_tuotanto <<- lataa_viimeisin_fingrid("reaali kokonaistuotanto")
+      uusin_tuuli <<- lataa_viimeisin_fingrid("reaali tuulivoima")
+      uusin_vienti <<- lataa_viimeisin_fingrid("reaali vienti")
+    }
+  })
+
+
 
   # Reaktiiviset datasetit ----------------------
+
+  ## ladataa boxplotdatat muistille vasta kun käyttäjä menee sivulle:
+
+  observeEvent(input$navbarID, {
+    #hakee fingridin viikkodatan vain jos on sahkonkulutus/reaaliaikainen välilehdellä'
+    if(input$navbarID == sah_desiili_url){
+
+      boxplotit_sopimukset   <<- lataa_data("asuntokunnittain_sopimustenlkm_boxplotit",kuukaudet)
+      boxplotit_maaraik     <<- lataa_data("asuntokunnittain_maaraaik_boxplotit", kuukaudet)
+      boxplotit_lammitys    <<- lataa_data("asuntokunnittain_lammitysmuoto_boxplotit", kuukaudet)
+      boxplotit_taajama <<- lataa_data("asuntokunnittain_taajama_boxplotit", kuukaudet)
+      boxplotit_kerrostalo <<- lataa_data("asuntokunnittain_kerrostalo_boxplotit", kuukaudet)
+      boxplotit_askoko <<- lataa_data("asuntokunnittain_askoko_boxplotit", kuukaudet)
+
+      boxplotlista <<- list(
+        "-" = boxplotit_asuntokunnat,
+        "sopimuksien lukumäärä" = boxplotit_sopimukset,
+        "määräaikaiset sopimukset"= boxplotit_maaraik,
+        "lämmitys riippuvainen sähköstä" = boxplotit_lammitys,
+        "asuu taajama-alueella" = boxplotit_taajama,
+        "asuu kerrostalossa" = boxplotit_kerrostalo,
+        "asuntokunnan koko"= boxplotit_askoko
+      )
+    }
+  })
 
   boxplot_data <- reactive({
     return(boxplotlista[[input$soptyyp]][[input$kk]])
@@ -640,9 +647,8 @@ server <- function(input, output, session) {
       teksti)
 
   })
+
   ## desiili sivu ---------------------------------------
-
-
   output$taustaotsikko <- renderText(
 
     if(input$soptyyp != '-'){
@@ -657,7 +663,6 @@ server <- function(input, output, session) {
   output$askumaarat <- shinydashboard::renderValueBox({
 
     sum <- sum(boxplotit_asuntokunnat[[input$kk]]$n)
-
     shinydashboard::valueBox(tuhaterotin(sum), "asuntokuntien lukumäärä")
   })
 
@@ -676,35 +681,7 @@ server <- function(input, output, session) {
     })
 
 
-  ## kuntasivu -------------------------------------------------------
 
-  output$kulutus_desiili <- shinydashboard::renderValueBox({
-    value <- mean(kunta_data()[input$kunt_kk] <= input$kwh_kulutus)
-
-    shinydashboard::valueBox(prosenttierotin(value-0.05),
-                             "Kotikuntasi asuntokunnista\nkuluttaa vähemmän sähköä")
-  })
-
-  output$kunta_mediaanit <- shinydashboard::renderValueBox({
-    median <- kunta_kvantiilit[[input$kunt_kk]] %>%
-      filter(kunnan_nimi == input$kotkunt) %>%
-      select(Q_50) %>%
-      pull()
-
-    shinydashboard::valueBox(paste0(round(median), ' kWh'), paste0("Kotikuntasi asuntokuntien mediaanikulutus ",
-                                            kuukaudet_suom(input$kunt_kk),"ssa "))
-  })
-
-  output$kuntien_suhteet <- shinydashboard::renderValueBox({
-    median <- kunta_kvantiilit[[input$kunt_kk]] %>%
-      filter(kunnan_nimi == input$kotkunt) %>%
-      select(Q_50) %>%
-      pull()
-
-    kuntien_lkm <- sum(kunta_kvantiilit[[input$kunt_kk]]$Q_50 <= median)
-
-    shinydashboard::valueBox(paste0(kuntien_lkm,'.'), "Pienin mediaanikulutus Suomessa")
-  })
 
   # Plotit ----------------------------------------
 
@@ -1001,38 +978,6 @@ server <- function(input, output, session) {
 
     })
 
-  output$kuntakuvaaja <- renderPlot({
-
-    kunta_data() %>%
-      pivot_longer(-kvantiili) %>%
-      group_by(name) %>%
-      mutate(value_diff = value - lag(value, default = value[1]),
-             kvantiili = factor(kvantiili, sort(unique(kvantiili), decreasing = TRUE))) %>%
-      ungroup() %>%
-      ggplot(aes(x = as.Date(name),
-                 y = value_diff,
-                 fill = kvantiili),
-             colour = 'black')+
-      geom_area(position = 'stack')+
-      geom_point(aes(
-        x = as.Date(input$kunt_kk),
-        y = input$kwh_kulutus,
-        alpha = "Sinun kulutuksesi"),
-        size = 5,
-        colour = "red") +
-      guides(fill="none")+
-      scale_alpha_manual(name = NULL,
-                         values = 1) +
-      scale_x_date(name = NULL,
-                   label = formatoi_kuukaudet_plot) +
-      scale_y_continuous(name = "Sähkönkulutus kWh",
-                         label = tuhaterotin)+
-      theme(legend.position = 'bottom',
-            axis.text = element_text(size = 14),
-            axis.title = element_text(size = 14),
-            legend.text = element_text(size= 14)) +
-      scale_fill_viridis_d()
-  })
 
 ## boxplotit ----------------------------------------
   output$boxplot <- renderPlot({
@@ -2072,3 +2017,4 @@ server <- function(input, output, session) {
 
 # Run the application
 shinyApp(ui = ui, server = server)
+
