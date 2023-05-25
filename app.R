@@ -17,7 +17,9 @@ lisaa_logo <- FALSE #lisää datahuonelogong yläoikealle
 lisaa_kunta_hommat <- F
 
 ### ladataan data ----------------
-kuukaudet <- feather::read_feather("data/kuukaudet_saatavilla.feather")$kuukaudet
+kuukaudet <- feather::read_feather("data/kuukaudet_saatavilla.feather") %>%
+  arrange(kuukaudet) %>%
+  pull()
 
 #ladataan boxplot datat
 boxplotit_sopimukset <- lataa_data("asuntokunnittain_sopimustenlkm_boxplotit",kuukaudet)
@@ -139,7 +141,7 @@ ui <- navbarPage(
 
   tabPanel(
 
-    # Etusivu -----------------------------------------------
+# Etusivu -----------------------------------------------
     title = "Etusivu",
     icon = icon('house'),
 
@@ -150,7 +152,7 @@ ui <- navbarPage(
       )
     ),
 
-  # sähköjutut ---------------------------
+# sähköjutut ---------------------------
   navbarMenu(
     title = "Kotitalouksien sähkönkulutus",
     icon = icon("plug"),
@@ -224,7 +226,7 @@ ui <- navbarPage(
           )
         )
       ),
-    ## desiilipaneeli --------------------------------
+## desiilipaneeli --------------------------------
     tabPanel(
       title = "Sosioekonomisten muuttujien tarkastelu",
       sidebarLayout(
@@ -299,9 +301,9 @@ ui <- navbarPage(
               )
             )
           )
-      ),
- ## kuntapaneeli ------------------------
+        ),
 
+ ## kuntapaneeli ------------------------
  if(lisaa_kunta_hommat) {
     tabPanel(
       title = "Kuntakohtainen tarkastelu",
@@ -376,6 +378,7 @@ ui <- navbarPage(
 
  ## ukrainalaiset ----------------------------------------------
  navbarMenu(
+
 
    title = "Työmarkkinat",
    icon = icon('briefcase'),
@@ -471,6 +474,7 @@ ui <- navbarPage(
 #      )
 #    )
  )
+
 
 
 
@@ -740,7 +744,7 @@ server <- function(input, output, session) {
       geom_vline(
         aes(
           linetype = "kokonaiskulutus",
-          xintercept = 0.5+(viiva_data$kokonaiskulutus/viiva_data$kokonaistuotanto)
+          xintercept = 0.5+sqrt(viiva_data$kokonaiskulutus/viiva_data$kokonaistuotanto)
         ),
         size = 1) +
       coord_polar("y", start=0) +
@@ -764,7 +768,7 @@ server <- function(input, output, session) {
         legend.text = element_text(size= 20),
         plot.caption =  element_text(size = 14, hjust = 0)) +
       labs(title = "Sähkön tämänhetkinen tuotanto sekä kulutus",
-           caption = stringr::str_wrap("Tiedot ovat Fingridin avoin data  -verkkopalvelusta ja perustuvat käytönvalvontajärjestelmän reaaliaikaisiin mittauksiin. Lisätietoja sähköntuotannosta sekä kulutuksesta voi löytää \"Reaaliaikainen sähkönkäyttötilanne\"-osiosta.", 80))
+           caption = stringr::str_wrap("Tiedot ovat Fingridin avoin data  -verkkopalvelusta ja perustuvat käytönvalvontajärjestelmän reaaliaikaisiin mittauksiin. Lisätietoja sähköntuotannosta sekä kulutuksesta voi löytää \"Reaaliaikainen sähkönkäyttötilanne\"-osiosta. Ympyröiden pinta-alojen suhde kuvaa kulutuksen sekä tuotannon suhdetta.", 80))
 
     })
 
