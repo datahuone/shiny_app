@@ -382,7 +382,7 @@ ui <- navbarPage(
                                     label = "prosentteina",
                                     value = FALSE),
                       p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon."),
-                      p("Mikäli jonkin kuukauden tiedot eivät ole näkyvissä, tiedot on jouduttu peittämään tietosuojasyistä")
+                      p(strong("Huom!"),"Mikäli jonkin kuukauden tiedot eivät ole näkyvissä, tiedot on jouduttu peittämään liian pienen havaintomäärän takia.")
                     ),
 
                     # Create a spot for the barplot
@@ -408,7 +408,8 @@ ui <- navbarPage(
                       selectInput("top", "Valitse tarkasteltavien alojen lkm",
                                   choices= c(1:8),
                                   selected = 5),
-                      p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon.")
+                      p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon."),
+                      p(strong("Huom!"),"Mikäli jonkin kuukauden tiedot eivät ole näkyvissä, tiedot on jouduttu peittämään liian pienen havaintomäärän takia.")
                     ),
 
                     # Create a spot for the barplot
