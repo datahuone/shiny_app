@@ -434,7 +434,8 @@ ui <- navbarPage(
                       selectInput("top", "Valitse tarkasteltavien alojen lkm",
                                   choices= c(1:8),
                                   selected = 5),
-                      p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon.")
+                      p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon."),
+                      p("Mikäli jonkin kuukauden tiedot eivät ole näkyvissä, tiedot on jouduttu peittämään tietosuojasyistä")
                     ),
 
                     # Create a spot for the barplot
