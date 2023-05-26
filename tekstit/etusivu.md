@@ -1,5 +1,8 @@
 # VATT Datahuone
 
-Tervetuloa VATT Datahuoneen Shiny-sovellukseen! Alla esittelemme lyhyesti jokaisen osion sisältämät tiedot, jotta saat paremman käsityksen sovelluksen tarjoamista mahdollisuuksista ja voit hyödyntää sitä tehokkaasti.
+<font size="4"> 
+Tervetuloa VATT Datahuoneen Shiny-sovellukseen! 
 
-
+- Sähkönkäytön seurantaosiossa voit tarkastella suomalaisten kotitalouksien sähkönkulutusta. 
+- Työmarkkina-välilehden löydät tietoa tilapäisen suojelun piirissä olevista ukrainalaisista. 
+</font> 
