@@ -71,7 +71,7 @@ toimialat <- toimialat %>% mutate(toimiala = factor(toimiala, levels = levels))
 levels <- ammatit %>% distinct(nimi_fi) %>% pull()
 ammatit <- ammatit %>% mutate(nimi_fi = factor(nimi_fi, levels = levels))
 
-
+#testi miten orgasnisaatiot toimii
 
 ## ukraina kuva-asetukset
 alpha_u <- 0.8
