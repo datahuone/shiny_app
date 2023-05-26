@@ -365,11 +365,12 @@ ui <- navbarPage(
      value = tyomarkkinat_ukrainat_url,
      tabsetPanel(
        tabPanel("Ukrainalaiset Suomessa",
-       fluidPage(
+        fluidPage(
          column(includeMarkdown("tekstit/ukraina_etusivu.md"), width = 6),
          column( h4("Tilapäisen suojelun piirissä olevien ukrainalaisten ikä- ja sukupuolijakauma"),
                  plotlyOutput("ikaryhma"), width = 6)
-       )),
+          )
+        ),
        tabPanel("Taustatietoja",
                 fluidPage(
 
@@ -394,9 +395,8 @@ ui <- navbarPage(
                       fluidRow(downloadButton("download_taustatiedot", "Lataa csv"))
                     )
                   )
-
                 ) ## close fluid page
-       ), ## close tab panel
+              ), ## close tab panel
 
 
        tabPanel("Toimialat ja ammatit",
@@ -418,38 +418,16 @@ ui <- navbarPage(
                       fluidRow(h2( textOutput('toimialat_otsikko'))),
                       plotOutput("ala_ammatti_plot"),
                       fluidRow(downloadButton("download_alat_ja_ammatit", "Lataa csv"))
+                      )
                     )
-                  )
 
-                ) ## close fluid page
+                  ) ## close fluid page
 
                 ) ## close tab panel
      ) ## close tabset panel
    ) ## close tab panel
  )
-
- #, ## close navbarmenu
-
-
-
-# ## Lisätietosivut ---------------------------------------------
-#  navbarMenu(
-#    title = "Lisätietoja",
-#    icon = icon('circle-info'),
-#
-#    tabPanel(
-#      title = "Taustaa datasta",
-#      h2("Oletukset datan taustalla:"),
-#      column(width = 1),
-#      column(includeMarkdown("tekstit/dataselite.md"), width = 10),
-#      column(width = 1)
-#      ),
-#    tabPanel(
-#      title = "Linkkejä",
-#      "Työn alla"
-#      )
-#    )
- )
+)
 
 
 
@@ -460,13 +438,13 @@ server <- function(input, output, session) {
 
   ## url päivitys ---------------------------------
   observeEvent(input$navbarID, {
-    currentHash <- sub("#", "", session$clientData$url_hash)
     pushQueryString <- paste0("#", input$navbarID)
-    if(is.null(currentHash) || currentHash != input$navbarID){
-      freezeReactiveValue(input, "navbarID")
-      updateQueryString(pushQueryString, mode = "push", session)
+    currentQuery <- sub("#", "", session$clientData$url_search)
+    if(!is.null(currentQuery) && nchar(currentQuery) > 0){
+      pushQueryString <- paste0(pushQueryString, "?", currentQuery)
     }
-  }, priority = 0)
+    updateQueryString(pushQueryString, mode = "push", session)
+  }, priority = 1)
 
   observeEvent(session$clientData$url_hash, {
     currentHash <- sub("#", "", session$clientData$url_hash)
@@ -474,9 +452,12 @@ server <- function(input, output, session) {
       freezeReactiveValue(input, "navbarID")
       updateNavbarPage(session, "navbarID", selected = currentHash)
     }
-  }, priority = 1)
+  }, priority = 2)
+
+
 
   ## API-kutsut -------------------------------
+
   observeEvent(input$navbarID, {
     #hakee fingridin viikkodatan vain jos on sahkonkulutus/reaaliaikainen välilehdellä'
     if(input$navbarID == sah_reaaliaikainen_url){
