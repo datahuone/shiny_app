@@ -167,7 +167,7 @@ ui <- navbarPage(
 # sähköjutut ---------------------------
   navbarMenu(
     title = "Kotitalouksien sähkönkulutus",
-    icon = icon('plug'),
+    icon = img(src="Ikoni_ympäristö.svg", height = 25),
 
     ### sivu ----------------------
     tabPanel(
@@ -357,7 +357,7 @@ ui <- navbarPage(
 
 
    title = "Työmarkkinat",
-   icon = icon('briefcase'),
+   icon = img(src="Ikoni_koulutus.svg", height = 25),
 
 
    tabPanel(
