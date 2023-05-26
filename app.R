@@ -365,7 +365,7 @@ ui <- navbarPage(
        tabPanel("Ukrainalaiset Suomessa",
        fluidPage(
          column(includeMarkdown("tekstit/ukraina_etusivu.md"), width = 6),
-         column( h4("Tilapäisen suojelun piirissä olevien ukrainalaisten ikä- ja sukupuolijakauma"),
+         column( h3("Tilapäisen suojelun piirissä olevien ukrainalaisten ikä- ja sukupuolijakauma"),
                  plotlyOutput("ikaryhma"), width = 6)
        )),
        tabPanel("Taustatietoja",
