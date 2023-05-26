@@ -136,6 +136,7 @@ ui <- navbarPage(
         ),
       tags$br(), #lisätään väli etusivun ja ikonien väliin
       fluidRow(
+        column(width = 1),
         column(
           tags$div(
             id = "btn_ymp",
@@ -146,7 +147,7 @@ ui <- navbarPage(
             ),
             tags$div(class="custom-label", "Siirry sähkönkäytön seurantaosioon")  # Add the class here
           ),
-          width = 6
+          width = 4
         ),
         column(
           tags$div(
@@ -158,8 +159,9 @@ ui <- navbarPage(
             ),
             tags$div(class="custom-label", 'Siirry työmarkkinaosioon')  # And here
           ),
-          width = 6
-          )
+          width = 4
+          ),
+        column(width = 1)
         )
       )
     ),
