@@ -343,9 +343,7 @@ ui <- navbarPage(
       title = "Taustaa datasta",
       #value = ,  #valueta käyteteään url muodostamiseen
       fluidPage(
-        fluidRow(
-          column(includeMarkdown("tekstit/dataselite.md"), width = 6),
-          column(width = 6)
+        fluidRow(includeMarkdown("tekstit/dataselite.md")
         ))
     )
  ),
