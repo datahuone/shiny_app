@@ -391,7 +391,7 @@ ui <- navbarPage(
                     # Create a spot for the barplot
                     mainPanel(
                       fluidRow(h2( textOutput('taustatieto_otsikko'))),
-                      plotOutput("basic_plot"),
+                      plotlyOutput("basic_plot"),
                       fluidRow(downloadButton("download_taustatiedot", "Lataa csv"))
                     )
                   )
@@ -417,7 +417,7 @@ ui <- navbarPage(
                     # Create a spot for the barplot
                     mainPanel(
                       fluidRow(h2( textOutput('toimialat_otsikko'))),
-                      plotOutput("ala_ammatti_plot"),
+                      plotlyOutput("ala_ammatti_plot"),
                       fluidRow(downloadButton("download_alat_ja_ammatit", "Lataa csv"))
                       )
                     )
@@ -1684,7 +1684,7 @@ server <- function(input, output, session) {
 
   })
 
-  output$basic_plot <- renderPlot({
+  output$basic_plot <- renderPlotly({
 
     data <-  ukraina_basics_data()
 
@@ -1695,8 +1695,9 @@ server <- function(input, output, session) {
         distinct(tilasto_time, n_total)
 
       ## plot
-      summary %>%
-        ggplot(aes(x = tilasto_time)) +
+      p <- summary %>%
+        rename("aika" = "tilasto_time") %>%
+        ggplot(aes(x = aika)) +
         geom_col(aes(y = n_total), fill = orange, alpha = alpha_u) +
         scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
         scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
@@ -1708,11 +1709,11 @@ server <- function(input, output, session) {
               panel.grid.minor.x = element_blank(),
               plot.caption = element_text(hjust = 0),
               axis.text.x = element_text(angle = 45, hjust = 1, size = font_size))
-
+      ggplotly(p)
 
     } else if(input$jaottelu == "ikäryhmä") {
 
-      if(input$vaesto == "kotikunnan saaneet") { "ei voida laskea"}
+      if(input$vaesto == "kotikunnan saaneet") {NULL}
       else {
 
       ## summarise
@@ -1724,9 +1725,10 @@ server <- function(input, output, session) {
       if (input$osuus) {
 
         ## plot
-        summary %>%
+        p <- summary %>%
           mutate(n = n/n_total*100) %>%
-          ggplot(aes(x = tilasto_time)) +
+          rename("aika" = "tilasto_time") %>%
+          ggplot(aes(x = aika)) +
           geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
           scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
           scale_fill_manual(values = colors) +
@@ -1740,12 +1742,15 @@ server <- function(input, output, session) {
                 plot.title = element_text(hjust = 0.5, size = 13),
                 plot.caption = element_text(hjust = 0),
                 axis.text.x = element_text(angle = 45, hjust = 1))
+        ggplotly(p) %>%
+          layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
 
       } else{
 
         ## plot
-        summary %>%
-          ggplot(aes(x = tilasto_time)) +
+        p <- summary %>%
+          rename("aika" = "tilasto_time") %>%
+          ggplot(aes(x = aika)) +
           geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
           scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
           scale_fill_manual(values = colors) +
@@ -1759,7 +1764,8 @@ server <- function(input, output, session) {
                 plot.title = element_text(hjust = 0.5, size = 13),
                 plot.caption = element_text(hjust = 0),
                 axis.text.x = element_text(angle = 45, hjust = 1))
-
+        ggplotly(p) %>%
+          layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
       }
       }
 
@@ -1775,9 +1781,10 @@ server <- function(input, output, session) {
       if (input$osuus) {
 
         ## plot
-        summary %>%
+        p <- summary %>%
           mutate(n = n/n_total*100) %>%
-          ggplot(aes(x = tilasto_time)) +
+          rename("aika" = "tilasto_time") %>%
+          ggplot(aes(x = aika)) +
           geom_col(aes(y = n, fill = sukupuoli), alpha = alpha_u) +
           scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
           scale_fill_manual(values = c(light_blue, orange)) +
@@ -1791,12 +1798,15 @@ server <- function(input, output, session) {
                 plot.title = element_text(hjust = 0.5, size = 13),
                 plot.caption = element_text(hjust = 0),
                 axis.text.x = element_text(angle = 45, hjust = 1))
+        ggplotly(p) %>%
+          layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
 
       } else{
 
         ## plot
-        summary %>%
-          ggplot(aes(x = tilasto_time)) +
+        p <- summary %>%
+          rename("aika" = "tilasto_time") %>%
+          ggplot(aes(x = aika)) +
           geom_col(aes(y = n, fill = sukupuoli), position = "dodge", alpha = alpha_u) +
           scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
           scale_fill_manual(values = c(light_blue, orange)) +
@@ -1810,7 +1820,8 @@ server <- function(input, output, session) {
                 plot.title = element_text(hjust = 0.5, size = 13),
                 plot.caption = element_text(hjust = 0),
                 axis.text.x = element_text(angle = 45, hjust = 1))
-
+        ggplotly(p) %>%
+          layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
       }
 
 
@@ -1858,14 +1869,15 @@ server <- function(input, output, session) {
     return(data)
 
   })
-  output$ala_ammatti_plot <- renderPlot({
+  output$ala_ammatti_plot <- renderPlotly({
 
     ## get data
     data <-  ukraina_alat_ja_ammatit()
 
     ## plot
-    data %>%
-      ggplot(aes(x = tilasto_time)) +
+    p <- data %>%
+      rename("aika" = "tilasto_time") %>%
+      ggplot(aes(x = aika)) +
       scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
       geom_col(aes(y = n, fill = ala), alpha = alpha_u) +
       scale_fill_manual(values = c(colors, "black")) +
@@ -1879,6 +1891,8 @@ server <- function(input, output, session) {
             plot.title = element_text(hjust = 0.5, size = 13),
             plot.caption = element_text(hjust = 0),
             axis.text.x = element_text(angle = 45, hjust = 1))
+    ggplotly(p) %>%
+      layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
 
   })
 
