@@ -152,6 +152,7 @@ ui <- navbarPage(
               style = "width: 300px; height: 300px;",
               HTML('<img src="Ikoni_ympäristö.svg" width="100%" height="100%"/>')
             ),
+
             # alla oleva div tekee label nappiin
             tags$div(
               class="custom-label",
