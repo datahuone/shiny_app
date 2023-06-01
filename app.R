@@ -152,15 +152,13 @@ ui <- navbarPage(
               style = "width: 300px; height: 300px;",
               HTML('<img src="Ikoni_ympäristö.svg" width="100%" height="100%"/>')
             ),
+            # alla oleva div tekee label nappiin
             tags$div(
               class="custom-label",
-              style = "font-size: 200%",
-              "Siirry sähkönkäyttöosioon")
-          ),
-
-          tags$div(
-            style = "font-size: 150%",
-            "Täällä voit tarkastella suomalaisten kotitalouksien sähkönkulutusta."
+              style = "font-size: 125%",
+              "Sähkönkäyttö - Tietoa suomalaisten",
+              tags$br(), # tags$br() muuttaa kahdeksi riviksi
+              "kotitalouksien sähkönkäytöstä.")
           ),
           width = 5
         ),
@@ -172,17 +170,17 @@ ui <- navbarPage(
             style = "background-color: #8482BD; margin-bottom: 20px;",
             tags$div(
               style = "width: 300px; height: 300px;",
-              HTML('<img src="Ikoni_koulutus.svg" width="100%" height="100%"/>')
+              HTML('<img src="Ikoni_työmarkkinat.svg" width="100%" height="100%"/>')
             ),
+            # alla oleva div tekee label nappiin
             tags$div(
               class="custom-label",
-              style = "font-size: 200%",
-              'Siirry työmarkkinaosioon')  # And here
-          ),
-          tags$div(
-            style = "font-size: 150%",
-            "Täältä löydät tietoa tilapäisen suojelun piirissä olevista ukrainalaisista."
-          ),
+              style = "font-size: 125%",
+              'Työmarkkinat - Tietoa tilapäisen',
+              tags$br(), # tags$br() muuttaa kahdeksi riviksi
+              'suojelun piirissä olevista ukrainalaisista.')
+            ),
+
           width = 5
           ),
 
@@ -381,12 +379,14 @@ ui <- navbarPage(
     )
  ))),
 
- # ukrainalaiset ----------------------------------------------
+# työmarkkinat ----------------------------------------------------
+
+ ## ukrainalaiset ----------------------------------------------
  navbarMenu(
 
 
    title = "Työmarkkinat",
-   icon = img(src="Ikoni_koulutus.svg", height = 25),
+   icon = img(src="Ikoni_työmarkkinat.svg", height = 25),
 
 
    tabPanel(
