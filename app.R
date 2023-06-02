@@ -149,7 +149,7 @@ ui <- navbarPage(
             #nappulan taustaväri ja välin suuruus nappulan ja tekstin välissä
             style = "background-color: #AED136; margin-bottom: 20px;",
             tags$div(
-              style = "width: 300px; height: 300px;",
+              style = "width: 100px; height: 100px;",
               HTML('<img src="Ikoni_ympäristö.svg" width="100%" height="100%"/>')
             ),
 
@@ -157,9 +157,9 @@ ui <- navbarPage(
             tags$div(
               class="custom-label",
               style = "font-size: 125%",
-              "Sähkönkäyttö - Tietoa suomalaisten",
+              HTML("<b>Sähkönkäyttö</b> - Tietoa suomalaisten"),
               tags$br(), # tags$br() muuttaa kahdeksi riviksi
-              "kotitalouksien sähkönkäytöstä.")
+              "kotitalouksien sähkönkäytöstä")
           ),
           width = 5
         ),
@@ -170,16 +170,17 @@ ui <- navbarPage(
             #nappulan taustaväri ja välin suuruus nappulan ja tekstin välissä
             style = "background-color: #8482BD; margin-bottom: 20px;",
             tags$div(
-              style = "width: 300px; height: 300px;",
+              style = "width: 100px; height: 100px;",
               HTML('<img src="Ikoni_työmarkkinat.svg" width="100%" height="100%"/>')
             ),
             # alla oleva div tekee label nappiin
             tags$div(
               class="custom-label",
               style = "font-size: 125%",
-              'Työmarkkinat - Tietoa tilapäisen',
+              HTML(
+              '<b>Työmarkkinat</b> - Tietoa tilapäisen'),
               tags$br(), # tags$br() muuttaa kahdeksi riviksi
-              'suojelun piirissä olevista ukrainalaisista.')
+              'suojelun piirissä olevista ukrainalaisista')
             ),
 
           width = 5
