@@ -1,3 +1,7 @@
+# Koodit datahuoneen kojelautaan.
+
+
+
 library(shiny, warn.conflicts = F)
 library(shinydashboard, warn.conflicts = F)
 library(shinyWidgets, warn.conflicts = F)
@@ -17,15 +21,17 @@ lisaa_logo <- F #lisää datahuonelogong yläoikealle
 
 ### ladataan data ----------------
 
-#haetaan kuukaudet mistä dataa
+#haetaan kuukaudet mistä sähkönkäyttöädataa
 kuukaudet <- feather::read_feather("data/kuukaudet_saatavilla.feather") %>%
   arrange(kuukaudet) %>%
   pull()
 
+
+#kuntien nimet
 kunnat <- feather::read_feather("data/kunnat.feather")
 Kunnan_nimet <- kunnat %>% distinct(kunnan_nimi)
 
-#jostain syystä tätä ei voi pitää observe eventin sisällä
+#jostain syystä tätä ei voi pitää observe eventin sisällä muut datat ladataan sertrverissä
 boxplotit_asuntokunnat <- lataa_data("asuntokunnittain_boxplotit", kuukaudet)
 aikasarja_data_raw <- feather::read_feather("data/aikasarjat/kulutus_kk.feather")
 
@@ -34,7 +40,7 @@ aikasarja_data_raw <- feather::read_feather("data/aikasarjat/kulutus_kk.feather"
 #url-juuri sahkokaytto sivuille
 sahk_etusivu_url <- "sahkonkulutus"
 
-#url-lehdet sivuille
+#url-lehdet sivuille (mahdollisesti ei toimienää)
 sah_kokonaiskulutus <- paste0(sahk_etusivu_url,"/kokonaiskulutus")
 sah_desiili_url <- paste0(sahk_etusivu_url,"/sosioekonomiset")
 sah_reaaliaikainen_url <- paste0(sahk_etusivu_url,"/reaaliaikainen")
@@ -43,13 +49,13 @@ sah_tausta_url <- paste0(sahk_etusivu_url,"/tausta")
 #url-juuri tyomarkkinoille
 tyomarkkinat_etusivu_url <- "tyomarkkinat"
 
-#url-lehdet tyomarkkinoille
+#url-lehdet tyomarkkinoille (tämäkin saattaa olla toimimatta kun siirryttiin tabsetpanel-rakenteeseen)
 tyomarkkinat_ukrainat_url <- paste0(tyomarkkinat_etusivu_url, "/ukrainalaiset")
 
 
 # ladataan ukrainadata ----------------------------------------------------
 
-## ukraina data
+## ukraina datan lataaminen
 kotikunta <-  read_csv("./data/summaries/sex_month_pop.csv")
 ei_kotikuntaa <-  read_csv("./data/summaries/age_sex_month_nonpop.csv")
 ikajakauma <- read_csv("./data/summaries/age_gender.csv")
@@ -129,38 +135,56 @@ ui <- navbarPage(
     title = "Etusivu",
     icon = icon('house'),
     value = 'etusivu', #valueta käyteteään url muodostamiseen
-
     fluidPage(
       fluidRow(
         includeMarkdown("tekstit/etusivu.md")
         ),
       tags$br(), #lisätään väli etusivun ja ikonien väliin
-      fluidRow(
+      fluidRow( #luodaaan rivi
         column(width = 1),
         column(
           tags$div(
             id = "btn_ymp",
             class = "btn btn-default action-button",
+            #nappulan taustaväri ja välin suuruus nappulan ja tekstin välissä
+            style = "background-color: #AED136; margin-bottom: 20px;",
             tags$div(
               style = "width: 300px; height: 300px;",
               HTML('<img src="Ikoni_ympäristö.svg" width="100%" height="100%"/>')
             ),
-            tags$div(class="custom-label", "Siirry sähkönkäytön seurantaosioon")  # Add the class here
+
+            # alla oleva div tekee label nappiin
+            tags$div(
+              class="custom-label",
+              style = "font-size: 125%",
+              "Sähkönkäyttö - Tietoa suomalaisten",
+              tags$br(), # tags$br() muuttaa kahdeksi riviksi
+              "kotitalouksien sähkönkäytöstä.")
           ),
-          width = 4
+          width = 5
         ),
         column(
           tags$div(
             id = "btn_tyo",
             class = "btn btn-default action-button",
+            #nappulan taustaväri ja välin suuruus nappulan ja tekstin välissä
+            style = "background-color: #8482BD; margin-bottom: 20px;",
             tags$div(
               style = "width: 300px; height: 300px;",
-              HTML('<img src="Ikoni_koulutus.svg" width="100%" height="100%"/>')
+              HTML('<img src="Ikoni_työmarkkinat.svg" width="100%" height="100%"/>')
             ),
-            tags$div(class="custom-label", 'Siirry työmarkkinaosioon')  # And here
+            # alla oleva div tekee label nappiin
+            tags$div(
+              class="custom-label",
+              style = "font-size: 125%",
+              'Työmarkkinat - Tietoa tilapäisen',
+              tags$br(), # tags$br() muuttaa kahdeksi riviksi
+              'suojelun piirissä olevista ukrainalaisista.')
+            ),
+
+          width = 5
           ),
-          width = 4
-          ),
+
         column(width = 1)
         )
       )
@@ -168,17 +192,21 @@ ui <- navbarPage(
 
 # sähköjutut ---------------------------
   navbarMenu(
-    title = "Kotitalouksien sähkönkulutus",
+    title = "Ympäristö & energia",
     icon = img(src="Ikoni_ympäristö.svg", height = 25),
-
+    tabPanel(
+      title = 'Kotitalouksien sähkönkäyttö',
+      value = sahk_etusivu_url,
+    tabsetPanel(
     ### sivu ----------------------
     tabPanel(
       title = "Etusivu",
       value = sahk_etusivu_url,  #valueta käyteteään url muodostamiseen
       fluidPage(
-        fluidRow(h1("Kotitalouksien sähkönkulutus - Fingrid Datahubin tilastotietojen tarkastelu")),
         fluidRow(
-          column(includeMarkdown("tekstit/sahko_leipateksti.md"),
+          column(
+            h1("Kotitalouksien sähkönkulutus - Fingrid Datahubin tilastotietojen tarkastelu"),
+            includeMarkdown("tekstit/sahko_leipateksti.md"),
            width = 6),
           column(
             plotOutput("piirakkaplot"),
@@ -187,7 +215,7 @@ ui <- navbarPage(
     ),
     ### aikasarjapaneeli ----------------------
     tabPanel(
-      title = "Kotitalouksien kokonaiskulutuksen trendit",
+      title = "Kokonaiskulutuksen trendit",
       value = sah_kokonaiskulutus,  #valueta käyteteään url muodostamiseen
 
       sidebarLayout(
@@ -239,7 +267,7 @@ ui <- navbarPage(
       ),
 ## desiilipaneeli --------------------------------
     tabPanel(
-      title = "Sosioekonomisten muuttujien tarkastelu",
+      title = "Sosioekonomisten muuttujat",
       value = sah_desiili_url,  #valueta käyteteään url muodostamiseen
       sidebarLayout(
           sidebarPanel(
@@ -350,14 +378,16 @@ ui <- navbarPage(
         fluidRow(includeMarkdown("tekstit/dataselite.md")
         ))
     )
- ),
+ ))),
 
- # ukrainalaiset ----------------------------------------------
+# työmarkkinat ----------------------------------------------------
+
+ ## ukrainalaiset ----------------------------------------------
  navbarMenu(
 
 
    title = "Työmarkkinat",
-   icon = img(src="Ikoni_koulutus.svg", height = 25),
+   icon = img(src="Ikoni_työmarkkinat.svg", height = 25),
 
 
    tabPanel(
@@ -461,7 +491,7 @@ server <- function(input, output, session) {
 
   observeEvent(input$navbarID, {
     #hakee fingridin viikkodatan vain jos on sahkonkulutus/reaaliaikainen välilehdellä'
-    if(input$navbarID == sah_reaaliaikainen_url){
+    if(input$navbarID == sahk_etusivu_url){
       viikko_data_fd <<- lataa_viikko_fingridistä() %>%
         arrange(desc(time)) %>%
         slice(which(row_number() %% 20 == 1)) %>%
@@ -507,7 +537,7 @@ server <- function(input, output, session) {
 
   observeEvent(input$navbarID, {
     #hakee fingridin viikkodatan vain jos on sahkonkulutus/reaaliaikainen välilehdellä'
-    if(input$navbarID == sah_desiili_url){
+    if(input$navbarID  %in% c(sahk_etusivu_url, sah_reaaliaikainen_url)){
 
       boxplotit_sopimukset   <<- lataa_data("asuntokunnittain_sopimustenlkm_boxplotit",kuukaudet)
       boxplotit_maaraik     <<- lataa_data("asuntokunnittain_maaraaik_boxplotit", kuukaudet)
