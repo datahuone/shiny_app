@@ -2189,7 +2189,7 @@ server <- function(input, output, session) {
 
       }
 
-      write.csv(summary, file, row.names = F, fileEncoding = "UTF-8")
+      write.csv(summary, file, row.names = F, fileEncoding = "ISO-8859-1")
     }
 
   )
@@ -2197,7 +2197,7 @@ server <- function(input, output, session) {
   output$download_emp <-downloadHandler(
 
     filename = function(){
-      if(input$emp == "kotiunnan saaneet"){
+      if(input$employed == "kotiunnan saaneet"){
         return(paste0("kotikunnan_saaneet_ukrainalaiset_palkansaajat.csv"))
       } else {
         return(paste0("kaikki_ukrainalaiset_palkansaajat.csv"))
@@ -2238,7 +2238,7 @@ server <- function(input, output, session) {
 
       }
 
-      write.csv(summary, file, row.names = F, fileEncoding = "UTF-8")
+      write.csv(summary, file, row.names = F, fileEncoding = "ISO-8859-1")
     }
 
   )
