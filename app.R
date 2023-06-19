@@ -2122,7 +2122,7 @@ server <- function(input, output, session) {
       kotikunta <- ""
     }
 
-    paste0("15–64-vuotiaat", kotikunta, " ukrainalaiset palkansaajat")
+    paste0("15–64-vuotiaat ", kotikunta, " ukrainalaiset palkansaajat")
   })
 
   output$taustatieto_otsikko <- renderText({
@@ -2197,7 +2197,7 @@ server <- function(input, output, session) {
   output$download_emp <-downloadHandler(
 
     filename = function(){
-      if(input$employed == "kotiunnan saaneet"){
+      if(input$employed == "kotikunnan saaneet"){
         return(paste0("kotikunnan_saaneet_ukrainalaiset_palkansaajat.csv"))
       } else {
         return(paste0("kaikki_ukrainalaiset_palkansaajat.csv"))
@@ -2218,6 +2218,11 @@ server <- function(input, output, session) {
 
       } else if(input$jaottelu_emp == "ikäryhmä") {
 
+        if(input$employed == "kotikunnan saaneet") {
+          data <- data %>%
+            filter(tilasto_time >  dmy("01/02/2023"))
+        }
+
         ## summarise
         summary <- data %>%
           group_by(tilasto_time, n_total, age_group) %>%
@@ -2227,6 +2232,11 @@ server <- function(input, output, session) {
           rename(c("aika" = "tilasto_time", "ikäryhmä" = "age_group"))
 
       } else if (input$jaottelu_emp == "sukupuoli"){
+
+        if(input$employed == "kotikunnan saaneet") {
+          data <- data %>%
+            filter(tilasto_time >  dmy("01/02/2023"))
+        }
 
         ## summarise
         summary <- data %>%
