@@ -1916,8 +1916,9 @@ server <- function(input, output, session) {
       ## plot
       p <- summary %>%
         rename("aika" = "tilasto_time") %>%
+        rename("lukumäärä" = "n_total") %>% #Akseli lisännyt 4.7.2023
         ggplot(aes(x = aika)) +
-        geom_col(aes(y = n_total), fill = orange, alpha = alpha_u) +
+        geom_col(aes(y = lukumäärä), fill = orange, alpha = alpha_u) +
         scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
         scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
         theme_light() +
@@ -1947,8 +1948,10 @@ server <- function(input, output, session) {
           p <- summary %>%
             mutate(n = n/n_total*100) %>%
             rename("aika" = "tilasto_time") %>%
+            rename("osuus" = "n") %>% #Akseli lisännyt 4.7.2023
+            rename("ikäryhmä"  = "age_group") %>% #Akseli lisännyt 4.7.2023
             ggplot(aes(x = aika)) +
-            geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
+            geom_col(aes(y = osuus, fill = ikäryhmä), alpha = alpha_u) +
             scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
             scale_fill_manual(values = colors) +
             scale_y_continuous(name = "prosenttia", labels = tuhaterotin) +
@@ -1969,8 +1972,10 @@ server <- function(input, output, session) {
           ## plot
           p <- summary %>%
             rename("aika" = "tilasto_time") %>%
+            rename("lukumäärä" = "n") %>% #Akseli lisännyt 4.7.2023
+            rename("ikäryhmä"  = "age_group") %>% #Akseli lisännyt 4.7.2023
             ggplot(aes(x = aika)) +
-            geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
+            geom_col(aes(y = lukumäärä, fill = ikäryhmä), alpha = alpha_u) +
             scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
             scale_fill_manual(values = colors) +
             scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
@@ -2003,8 +2008,9 @@ server <- function(input, output, session) {
         p <- summary %>%
           mutate(n = n/n_total*100) %>%
           rename("aika" = "tilasto_time") %>%
+          rename("osuus" = "n") %>% #Akseli lisännyt 4.7.2023
           ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = sukupuoli), alpha = alpha_u) +
+          geom_col(aes(y = osuus, fill = sukupuoli), alpha = alpha_u) +
           scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
           scale_fill_manual(values = c(light_blue, orange)) +
           scale_y_continuous(name = "prosenttia", labels = tuhaterotin) +
@@ -2025,8 +2031,9 @@ server <- function(input, output, session) {
         ## plot
         p <- summary %>%
           rename("aika" = "tilasto_time") %>%
+          rename("lukumäärä" = "n") %>% #Akseli lisännyt 4.7.2023
           ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = sukupuoli), position = "dodge", alpha = alpha_u) +
+          geom_col(aes(y = lukumäärä, fill = sukupuoli), position = "dodge", alpha = alpha_u) +
           scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
           scale_fill_manual(values = c(light_blue, orange)) +
           scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
