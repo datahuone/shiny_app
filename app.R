@@ -417,6 +417,7 @@ ui <- navbarPage(
                       checkboxInput(inputId = "osuus",
                                     label = "prosentteina",
                                     value = FALSE),
+                      p("Voit nähdä tarkan lukumäärän tai osuuden viemällä kursorin haluamasi palkin päälle."),
                       p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon."),
                       p(strong("Huom!"),"Mikäli jonkin kuukauden tiedot eivät ole näkyvissä, tiedot on jouduttu peittämään liian pienen havaintomäärän takia.")
                     ),
@@ -444,6 +445,7 @@ ui <- navbarPage(
                       checkboxInput(inputId = "osuus_emp",
                                     label = "prosentteina",
                                     value = FALSE),
+                      p("Voit nähdä tarkan lukumäärän tai osuuden viemällä kursorin haluamasi palkin päälle."),
                       p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon."),
                       p(strong("Huom!"),"Mikäli jonkin kuukauden tiedot eivät ole näkyvissä, tiedot on jouduttu peittämään liian pienen havaintomäärän takia.")
                     ),
@@ -468,6 +470,7 @@ ui <- navbarPage(
                       selectInput("top", "Valitse tarkasteltavien alojen lkm",
                                   choices= c(1:8),
                                   selected = 5),
+                      p("Voit nähdä tarkan lukumäärän tai osuuden viemällä kursorin haluamasi palkin päälle."),
                       p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon."),
                       p(strong("Huom!"),"Mikäli jonkin kuukauden tiedot eivät ole näkyvissä, tiedot on jouduttu peittämään liian pienen havaintomäärän takia.")
                     ),
@@ -1710,8 +1713,10 @@ server <- function(input, output, session) {
 
     ## create plot
     p <- ikajakauma %>%
+      rename("ikäryhmä" = "age_group") %>%
+      rename("lukumäärä" = "n") %>%
       ggplot() +
-      geom_col(aes(x = age_group, y =n, fill = sukupuoli), alpha = alpha_u, position = "dodge") +
+      geom_col(aes(x = ikäryhmä, y =lukumäärä, fill = sukupuoli), alpha = alpha_u, position = "dodge") +
       scale_fill_manual(values = c(light_blue, orange)) +
       scale_x_discrete(name = "ikäryhmä") +
       scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
@@ -1755,8 +1760,9 @@ server <- function(input, output, session) {
       ## plot
       p <- summary %>%
         rename("aika" = "tilasto_time") %>%
+        rename("lukumäärä" = "n_total") %>%
         ggplot(aes(x = aika)) +
-        geom_col(aes(y = n_total), fill = orange, alpha = alpha_u) +
+        geom_col(aes(y = lukumäärä), fill = orange, alpha = alpha_u) +
         scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
         scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
         theme_light() +
@@ -1786,8 +1792,10 @@ server <- function(input, output, session) {
         p <- summary %>%
           mutate(n = n/n_total*100) %>%
           rename("aika" = "tilasto_time") %>%
+          rename("osuus" = "n") %>%
+          rename("ikäryhmä" = "age_group") %>%
           ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
+          geom_col(aes(y = osuus, fill = ikäryhmä), alpha = alpha_u) +
           scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
           scale_fill_manual(values = colors) +
           scale_y_continuous(name = "prosenttia", labels = tuhaterotin) +
@@ -1808,8 +1816,10 @@ server <- function(input, output, session) {
         ## plot
         p <- summary %>%
           rename("aika" = "tilasto_time") %>%
+          rename("lukumäärä" = "n") %>%
+          rename("ikäryhmä" = "age_group") %>%
           ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
+          geom_col(aes(y = lukumäärä, fill = ikäryhmä), alpha = alpha_u) +
           scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
           scale_fill_manual(values = colors) +
           scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
@@ -1842,8 +1852,9 @@ server <- function(input, output, session) {
         p <- summary %>%
           mutate(n = n/n_total*100) %>%
           rename("aika" = "tilasto_time") %>%
+          rename("osuus" = "n") %>%
           ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = sukupuoli), alpha = alpha_u) +
+          geom_col(aes(y = osuus, fill = sukupuoli), alpha = alpha_u) +
           scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
           scale_fill_manual(values = c(light_blue, orange)) +
           scale_y_continuous(name = "prosenttia", labels = tuhaterotin) +
@@ -1864,8 +1875,9 @@ server <- function(input, output, session) {
         ## plot
         p <- summary %>%
           rename("aika" = "tilasto_time") %>%
+          rename("lukumäärä" = "n") %>%
           ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = sukupuoli), position = "dodge", alpha = alpha_u) +
+          geom_col(aes(y = lukumäärä, fill = sukupuoli), position = "dodge", alpha = alpha_u) +
           scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
           scale_fill_manual(values = c(light_blue, orange)) +
           scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
@@ -2102,9 +2114,10 @@ server <- function(input, output, session) {
     ## plot
     p <- data %>%
       rename("aika" = "tilasto_time") %>%
+      rename("lukumäärä" = "n") %>%
       ggplot(aes(x = aika)) +
       scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-      geom_col(aes(y = n, fill = ala), alpha = alpha_u) +
+      geom_col(aes(y = lukumäärä, fill = ala), alpha = alpha_u) +
       scale_fill_manual(values = c(colors, "black")) +
       scale_y_continuous(name = "henkilöä") +
       theme_light() +
