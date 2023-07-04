@@ -1,125 +1,145 @@
 tilasto_time,prof_l3,n,n_total,share,nimi_fi
-2022-03-01,611,11,25,44,Pelto- ja puutarhaviljelijät
-2022-04-01,611,49,149,32.88590604026846,Pelto- ja puutarhaviljelijät
-2022-04-01,911,18,149,12.080536912751679,"Koti-, hotelli- ja toimistosiivoojat ym."
-2022-04-01,711,12,149,8.053691275167784,Rakennustyöntekijät ym.
-2022-05-01,911,196,999,19.61961961961962,"Koti-, hotelli- ja toimistosiivoojat ym."
-2022-05-01,611,178,999,17.81781781781782,Pelto- ja puutarhaviljelijät
-2022-05-01,921,77,999,7.707707707707708,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2022-05-01,711,54,999,5.405405405405405,Rakennustyöntekijät ym.
-2022-05-01,816,54,999,5.405405405405405,Elintarviketeollisuuden prosessityöntekijät
-2022-05-01,821,49,999,4.904904904904905,Teollisuustuotteiden kokoonpanijat
-2022-05-01,941,31,999,3.1031031031031033,Avustavat keittiö- ja ruokatyöntekijät
-2022-05-01,531,24,999,2.4024024024024024,Lastenhoitajat ja koulunkäyntiavustajat
-2022-05-01,721,21,999,2.1021021021021022,"Valimotyöntekijät, hitsaajat, levysepät ym."
-2022-05-01,621,18,999,1.8018018018018018,Metsurit ja metsätyöntekijät
-2022-06-01,911,543,2648,20.506042296072508,"Koti-, hotelli- ja toimistosiivoojat ym."
-2022-06-01,611,372,2648,14.04833836858006,Pelto- ja puutarhaviljelijät
-2022-06-01,921,291,2648,10.989425981873111,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2022-06-01,711,137,2648,5.173716012084592,Rakennustyöntekijät ym.
-2022-06-01,816,112,2648,4.229607250755287,Elintarviketeollisuuden prosessityöntekijät
-2022-06-01,621,102,2648,3.8519637462235647,Metsurit ja metsätyöntekijät
-2022-06-01,821,98,2648,3.7009063444108756,Teollisuustuotteiden kokoonpanijat
-2022-06-01,941,79,2648,2.983383685800604,Avustavat keittiö- ja ruokatyöntekijät
-2022-06-01,513,53,2648,2.001510574018127,Tarjoilutyöntekijät
-2022-06-01,962,50,2648,1.8882175226586102,"Sanomalehtien jakajat, lähetit ym."
-2022-07-01,921,1099,4950,22.2020202020202,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2022-07-01,611,911,4950,18.404040404040405,Pelto- ja puutarhaviljelijät
-2022-07-01,911,830,4950,16.767676767676768,"Koti-, hotelli- ja toimistosiivoojat ym."
-2022-07-01,711,232,4950,4.686868686868687,Rakennustyöntekijät ym.
-2022-07-01,816,137,4950,2.7676767676767677,Elintarviketeollisuuden prosessityöntekijät
-2022-07-01,821,123,4950,2.484848484848485,Teollisuustuotteiden kokoonpanijat
-2022-07-01,962,121,4950,2.4444444444444446,"Sanomalehtien jakajat, lähetit ym."
-2022-07-01,941,114,4950,2.3030303030303028,Avustavat keittiö- ja ruokatyöntekijät
-2022-07-01,621,98,4950,1.9797979797979797,Metsurit ja metsätyöntekijät
-2022-07-01,513,90,4950,1.8181818181818181,Tarjoilutyöntekijät
-2022-08-01,921,1947,6921,28.13177286519289,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2022-08-01,611,1251,6921,18.075422626788036,Pelto- ja puutarhaviljelijät
-2022-08-01,911,1001,6921,14.463227857246064,"Koti-, hotelli- ja toimistosiivoojat ym."
-2022-08-01,711,332,6921,4.7969946539517405,Rakennustyöntekijät ym.
-2022-08-01,821,159,6921,2.297355873428695,Teollisuustuotteiden kokoonpanijat
-2022-08-01,816,154,6921,2.2251119780378557,Elintarviketeollisuuden prosessityöntekijät
-2022-08-01,962,153,6921,2.2106631989596877,"Sanomalehtien jakajat, lähetit ym."
-2022-08-01,941,134,6921,1.9361363964744978,Avustavat keittiö- ja ruokatyöntekijät
-2022-08-01,513,103,6921,1.488224245051293,Tarjoilutyöntekijät
-2022-08-01,931,88,6921,1.2714925588787749,Avustavat kaivos- ja rakennustyöntekijät
-2022-09-01,911,1125,5895,19.083969465648856,"Koti-, hotelli- ja toimistosiivoojat ym."
-2022-09-01,921,875,5895,14.843087362171332,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2022-09-01,611,596,5895,10.110262934690416,Pelto- ja puutarhaviljelijät
-2022-09-01,711,436,5895,7.3960983884648,Rakennustyöntekijät ym.
-2022-09-01,821,199,5895,3.3757421543681088,Teollisuustuotteiden kokoonpanijat
-2022-09-01,816,198,5895,3.3587786259541987,Elintarviketeollisuuden prosessityöntekijät
-2022-09-01,941,179,5895,3.036471586089907,Avustavat keittiö- ja ruokatyöntekijät
-2022-09-01,931,152,5895,2.578456318914334,Avustavat kaivos- ja rakennustyöntekijät
-2022-09-01,962,130,5895,2.205258693808312,"Sanomalehtien jakajat, lähetit ym."
-2022-09-01,513,107,5895,1.81509754028838,Tarjoilutyöntekijät
-2022-10-01,911,1190,5813,20.471357302597625,"Koti-, hotelli- ja toimistosiivoojat ym."
-2022-10-01,611,518,5813,8.911061414071908,Pelto- ja puutarhaviljelijät
-2022-10-01,711,480,5813,8.257354206089799,Rakennustyöntekijät ym.
-2022-10-01,921,467,5813,8.033717529674867,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2022-10-01,821,216,5813,3.7158093927404092,Teollisuustuotteiden kokoonpanijat
-2022-10-01,816,212,5813,3.646998107689661,Elintarviketeollisuuden prosessityöntekijät
-2022-10-01,941,169,5813,2.9072767933941166,Avustavat keittiö- ja ruokatyöntekijät
-2022-10-01,931,157,5813,2.7008429382418715,Avustavat kaivos- ja rakennustyöntekijät
-2022-10-01,513,113,5813,1.94391880268364,Tarjoilutyöntekijät
-2022-10-01,962,110,5813,1.8923103388955789,"Sanomalehtien jakajat, lähetit ym."
-2022-11-01,911,1262,5798,21.766126250431185,"Koti-, hotelli- ja toimistosiivoojat ym."
-2022-11-01,711,539,5798,9.296309072093825,Rakennustyöntekijät ym.
-2022-11-01,611,317,5798,5.467402552604346,Pelto- ja puutarhaviljelijät
-2022-11-01,921,292,5798,5.036219385995171,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2022-11-01,816,240,5798,4.139358399448086,Elintarviketeollisuuden prosessityöntekijät
-2022-11-01,821,218,5798,3.7599172128320113,Teollisuustuotteiden kokoonpanijat
-2022-11-01,941,174,5798,3.001034839599862,Avustavat keittiö- ja ruokatyöntekijät
-2022-11-01,931,160,5798,2.759572266298724,Avustavat kaivos- ja rakennustyöntekijät
-2022-11-01,962,126,5798,2.1731631597102448,"Sanomalehtien jakajat, lähetit ym."
-2022-11-01,721,116,5798,2.000689893066575,"Valimotyöntekijät, hitsaajat, levysepät ym."
-2022-12-01,911,1278,6067,21.064776660623043,"Koti-, hotelli- ja toimistosiivoojat ym."
-2022-12-01,711,552,6067,9.098401186747981,Rakennustyöntekijät ym.
-2022-12-01,611,327,6067,5.389813746497445,Pelto- ja puutarhaviljelijät
-2022-12-01,921,259,6067,4.268996208999506,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2022-12-01,816,233,6067,3.840448327014999,Elintarviketeollisuuden prosessityöntekijät
-2022-12-01,821,233,6067,3.840448327014999,Teollisuustuotteiden kokoonpanijat
-2022-12-01,941,183,6067,3.0163177847371023,Avustavat keittiö- ja ruokatyöntekijät
-2022-12-01,931,169,6067,2.785561232899291,Avustavat kaivos- ja rakennustyöntekijät
-2022-12-01,721,133,6067,2.1921872424592053,"Valimotyöntekijät, hitsaajat, levysepät ym."
-2022-12-01,815,125,6067,2.060326355694742,"Tekstiili-, turkis- ja nahkatuoteteollisuuden prosessityöntekijät"
-2023-01-01,911,1285,5607,22.917781344747638,"Koti-, hotelli- ja toimistosiivoojat ym."
-2023-01-01,711,493,5607,8.792580702693062,Rakennustyöntekijät ym.
-2023-01-01,816,244,5607,4.351703228107723,Elintarviketeollisuuden prosessityöntekijät
-2023-01-01,821,229,5607,4.08418048867487,Teollisuustuotteiden kokoonpanijat
-2023-01-01,611,188,5607,3.352951667558409,Pelto- ja puutarhaviljelijät
-2023-01-01,941,178,5607,3.1746031746031744,Avustavat keittiö- ja ruokatyöntekijät
-2023-01-01,931,169,5607,3.0140895309434637,Avustavat kaivos- ja rakennustyöntekijät
-2023-01-01,921,166,5607,2.960584983056893,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2023-01-01,721,147,5607,2.6217228464419478,"Valimotyöntekijät, hitsaajat, levysepät ym."
-2023-01-01,515,124,5607,2.211521312644908,Kiinteistöhuollon ja siivoustyön esimiehet
-2023-02-01,911,1310,5750,22.782608695652172,"Koti-, hotelli- ja toimistosiivoojat ym."
-2023-02-01,711,518,5750,9.008695652173913,Rakennustyöntekijät ym.
-2023-02-01,821,236,5750,4.104347826086956,Teollisuustuotteiden kokoonpanijat
-2023-02-01,816,220,5750,3.826086956521739,Elintarviketeollisuuden prosessityöntekijät
-2023-02-01,941,188,5750,3.269565217391304,Avustavat keittiö- ja ruokatyöntekijät
-2023-02-01,921,182,5750,3.165217391304348,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2023-02-01,611,166,5750,2.88695652173913,Pelto- ja puutarhaviljelijät
-2023-02-01,931,152,5750,2.6434782608695655,Avustavat kaivos- ja rakennustyöntekijät
-2023-02-01,721,149,5750,2.5913043478260867,"Valimotyöntekijät, hitsaajat, levysepät ym."
-2023-02-01,515,123,5750,2.139130434782609,Kiinteistöhuollon ja siivoustyön esimiehet
-2023-03-01,911,1382,6090,22.692939244663382,"Koti-, hotelli- ja toimistosiivoojat ym."
-2023-03-01,711,506,6090,8.308702791461412,Rakennustyöntekijät ym.
-2023-03-01,821,271,6090,4.44991789819376,Teollisuustuotteiden kokoonpanijat
-2023-03-01,611,219,6090,3.596059113300493,Pelto- ja puutarhaviljelijät
-2023-03-01,816,211,6090,3.4646962233169125,Elintarviketeollisuuden prosessityöntekijät
-2023-03-01,921,191,6090,3.136288998357964,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2023-03-01,941,186,6090,3.054187192118227,Avustavat keittiö- ja ruokatyöntekijät
-2023-03-01,721,178,6090,2.922824302134647,"Valimotyöntekijät, hitsaajat, levysepät ym."
-2023-03-01,931,149,6090,2.4466338259441707,Avustavat kaivos- ja rakennustyöntekijät
-2023-03-01,815,147,6090,2.413793103448276,"Tekstiili-, turkis- ja nahkatuoteteollisuuden prosessityöntekijät"
-2023-04-01,911,1458,6381,22.8490832157969,"Koti-, hotelli- ja toimistosiivoojat ym."
-2023-04-01,711,494,6381,7.741733270647234,Rakennustyöntekijät ym.
-2023-04-01,821,285,6381,4.466384579219558,Teollisuustuotteiden kokoonpanijat
-2023-04-01,611,280,6381,4.388026955022724,Pelto- ja puutarhaviljelijät
-2023-04-01,921,232,6381,3.6357937627331136,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
-2023-04-01,816,213,6381,3.338034790785143,Elintarviketeollisuuden prosessityöntekijät
-2023-04-01,941,204,6381,3.1969910672308415,Avustavat keittiö- ja ruokatyöntekijät
-2023-04-01,721,194,6381,3.040275818837173,"Valimotyöntekijät, hitsaajat, levysepät ym."
-2023-04-01,931,160,6381,2.5074439742986994,Avustavat kaivos- ja rakennustyöntekijät
-2023-04-01,815,153,6381,2.3977433004231314,"Tekstiili-, turkis- ja nahkatuoteteollisuuden prosessityöntekijät"
+2022-03-01,611,94,255,36.86274509803922,Pelto- ja puutarhaviljelijät
+2022-03-01,711,23,255,9.019607843137255,Rakennustyöntekijät ym.
+2022-03-01,612,15,255,5.88235294117647,Eläintenkasvattajat
+2022-03-01,721,13,255,5.098039215686274,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2022-04-01,611,396,1311,30.205949656750576,Pelto- ja puutarhaviljelijät
+2022-04-01,911,149,1311,11.365369946605645,"Koti-, hotelli- ja toimistosiivoojat ym."
+2022-04-01,921,103,1311,7.856598016781083,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2022-04-01,711,67,1311,5.110602593440122,Rakennustyöntekijät ym.
+2022-04-01,721,60,1311,4.576659038901601,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2022-04-01,612,41,1311,3.1273836765827614,Eläintenkasvattajat
+2022-04-01,821,38,1311,2.898550724637681,Teollisuustuotteiden kokoonpanijat
+2022-04-01,816,35,1311,2.6697177726926014,Elintarviketeollisuuden prosessityöntekijät
+2022-04-01,811,30,1311,2.2883295194508007,Kaivos- ja louhintatyön koneenkäyttäjät
+2022-04-01,712,29,1311,2.212051868802441,Rakennusten viimeistelytyöntekijät
+2022-05-01,911,1684,7736,21.768355739400207,"Koti-, hotelli- ja toimistosiivoojat ym."
+2022-05-01,611,995,7736,12.861944157187178,Pelto- ja puutarhaviljelijät
+2022-05-01,816,547,7736,7.070837642192347,Elintarviketeollisuuden prosessityöntekijät
+2022-05-01,821,502,7736,6.489141675284385,Teollisuustuotteiden kokoonpanijat
+2022-05-01,921,419,7736,5.416235780765254,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2022-05-01,711,402,7736,5.196483971044468,Rakennustyöntekijät ym.
+2022-05-01,941,228,7736,2.9472595656670113,Avustavat keittiö- ja ruokatyöntekijät
+2022-05-01,531,194,7736,2.5077559462254393,Lastenhoitajat ja koulunkäyntiavustajat
+2022-05-01,721,186,7736,2.404343329886246,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2022-05-01,612,146,7736,1.8872802481902793,Eläintenkasvattajat
+2022-06-01,911,4337,18214,23.811353903590646,"Koti-, hotelli- ja toimistosiivoojat ym."
+2022-06-01,611,1851,18214,10.162512353134952,Pelto- ja puutarhaviljelijät
+2022-06-01,921,1276,18214,7.005600087844516,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2022-06-01,711,1007,18214,5.528714175908641,Rakennustyöntekijät ym.
+2022-06-01,816,999,18214,5.484791918304601,Elintarviketeollisuuden prosessityöntekijät
+2022-06-01,821,969,18214,5.320083452289448,Teollisuustuotteiden kokoonpanijat
+2022-06-01,941,526,18214,2.8878884374656857,Avustavat keittiö- ja ruokatyöntekijät
+2022-06-01,621,404,18214,2.218074009004063,Metsurit ja metsätyöntekijät
+2022-06-01,513,369,18214,2.0259141319863843,Tarjoilutyöntekijät
+2022-06-01,721,336,18214,1.8447348193697155,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2022-07-01,911,6711,27411,24.482871839772354,"Koti-, hotelli- ja toimistosiivoojat ym."
+2022-07-01,611,3008,27411,10.973696691109408,Pelto- ja puutarhaviljelijät
+2022-07-01,921,2760,27411,10.068950421363686,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2022-07-01,711,1649,27411,6.01583305972055,Rakennustyöntekijät ym.
+2022-07-01,821,1160,27411,4.231877713326767,Teollisuustuotteiden kokoonpanijat
+2022-07-01,816,1120,27411,4.085950895625843,Elintarviketeollisuuden prosessityöntekijät
+2022-07-01,941,797,27411,2.907591842690891,Avustavat keittiö- ja ruokatyöntekijät
+2022-07-01,513,573,27411,2.090401663565722,Tarjoilutyöntekijät
+2022-07-01,962,474,27411,1.7292327897559374,"Sanomalehtien jakajat, lähetit ym."
+2022-07-01,621,455,27411,1.659917551347999,Metsurit ja metsätyöntekijät
+2022-08-01,911,8064,34578,23.32118688183238,"Koti-, hotelli- ja toimistosiivoojat ym."
+2022-08-01,921,3876,34578,11.209439528023598,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2022-08-01,611,3504,34578,10.133610966510497,Pelto- ja puutarhaviljelijät
+2022-08-01,711,2260,34578,6.535947712418301,Rakennustyöntekijät ym.
+2022-08-01,821,1420,34578,4.1066574122274275,Teollisuustuotteiden kokoonpanijat
+2022-08-01,816,1303,34578,3.7682919775579844,Elintarviketeollisuuden prosessityöntekijät
+2022-08-01,941,952,34578,2.753195673549656,Avustavat keittiö- ja ruokatyöntekijät
+2022-08-01,513,644,34578,1.8624558968130023,Tarjoilutyöntekijät
+2022-08-01,962,622,34578,1.7988316270460987,"Sanomalehtien jakajat, lähetit ym."
+2022-08-01,815,572,34578,1.654231013939499,"Tekstiili-, turkis- ja nahkatuoteteollisuuden prosessityöntekijät"
+2022-09-01,911,9344,38684,24.154689277220555,"Koti-, hotelli- ja toimistosiivoojat ym."
+2022-09-01,711,2894,38684,7.481129149002172,Rakennustyöntekijät ym.
+2022-09-01,611,2768,38684,7.155413090683487,Pelto- ja puutarhaviljelijät
+2022-09-01,921,2764,38684,7.14507289835591,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2022-09-01,821,1772,38684,4.580705201116741,Teollisuustuotteiden kokoonpanijat
+2022-09-01,816,1593,38684,4.117981594457657,Elintarviketeollisuuden prosessityöntekijät
+2022-09-01,941,1225,38684,3.166683900320546,Avustavat keittiö- ja ruokatyöntekijät
+2022-09-01,931,979,38684,2.5307620721745425,Avustavat kaivos- ja rakennustyöntekijät
+2022-09-01,513,751,38684,1.941371109502637,Tarjoilutyöntekijät
+2022-09-01,815,706,38684,1.8250439458173924,"Tekstiili-, turkis- ja nahkatuoteteollisuuden prosessityöntekijät"
+2022-10-01,911,10133,41527,24.40099212560503,"Koti-, hotelli- ja toimistosiivoojat ym."
+2022-10-01,711,3290,41527,7.9225564090832465,Rakennustyöntekijät ym.
+2022-10-01,611,2535,41527,6.10446215715077,Pelto- ja puutarhaviljelijät
+2022-10-01,921,2114,41527,5.0906639054109375,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2022-10-01,821,1938,41527,4.666843258602837,Teollisuustuotteiden kokoonpanijat
+2022-10-01,816,1737,41527,4.18282081537313,Elintarviketeollisuuden prosessityöntekijät
+2022-10-01,941,1290,41527,3.1064126953548294,Avustavat keittiö- ja ruokatyöntekijät
+2022-10-01,931,1042,41527,2.5092108748525055,Avustavat kaivos- ja rakennustyöntekijät
+2022-10-01,721,835,41527,2.0107400004816145,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2022-10-01,513,800,41527,1.926457485491367,Tarjoilutyöntekijät
+2022-11-01,911,10731,43516,24.65989521095689,"Koti-, hotelli- ja toimistosiivoojat ym."
+2022-11-01,711,3696,43516,8.493427704752275,Rakennustyöntekijät ym.
+2022-11-01,611,2068,43516,4.752275025278059,Pelto- ja puutarhaviljelijät
+2022-11-01,821,1984,43516,4.55924257744278,Teollisuustuotteiden kokoonpanijat
+2022-11-01,816,1886,43516,4.334038054968287,Elintarviketeollisuuden prosessityöntekijät
+2022-11-01,921,1753,43516,4.028403345895763,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2022-11-01,941,1358,43516,3.120691240003677,Avustavat keittiö- ja ruokatyöntekijät
+2022-11-01,931,1067,43516,2.4519716885743175,Avustavat kaivos- ja rakennustyöntekijät
+2022-11-01,721,962,43516,2.210681128780219,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2022-11-01,513,861,43516,1.9785825903116097,Tarjoilutyöntekijät
+2022-12-01,911,10892,44617,24.412219557567745,"Koti-, hotelli- ja toimistosiivoojat ym."
+2022-12-01,711,3747,44617,8.398144205123607,Rakennustyöntekijät ym.
+2022-12-01,821,2063,44617,4.623798103861756,Teollisuustuotteiden kokoonpanijat
+2022-12-01,611,1982,44617,4.442252952910326,Pelto- ja puutarhaviljelijät
+2022-12-01,816,1906,44617,4.271914292758366,Elintarviketeollisuuden prosessityöntekijät
+2022-12-01,921,1590,44617,3.5636640742317947,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2022-12-01,941,1393,44617,3.1221283367326356,Avustavat keittiö- ja ruokatyöntekijät
+2022-12-01,931,1075,44617,2.4093955218862764,Avustavat kaivos- ja rakennustyöntekijät
+2022-12-01,721,1044,44617,2.339915278929556,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2022-12-01,815,938,44617,2.1023376739807698,"Tekstiili-, turkis- ja nahkatuoteteollisuuden prosessityöntekijät"
+2023-01-01,911,10807,42932,25.172365601416193,"Koti-, hotelli- ja toimistosiivoojat ym."
+2023-01-01,711,3518,42932,8.194353861921178,Rakennustyöntekijät ym.
+2023-01-01,821,2023,42932,4.712102860337278,Teollisuustuotteiden kokoonpanijat
+2023-01-01,816,1943,42932,4.5257616696170695,Elintarviketeollisuuden prosessityöntekijät
+2023-01-01,611,1513,42932,3.5241777694959473,Pelto- ja puutarhaviljelijät
+2023-01-01,941,1392,42932,3.2423367185316314,Avustavat keittiö- ja ruokatyöntekijät
+2023-01-01,921,1218,42932,2.8370446287151774,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2023-01-01,721,1115,42932,2.5971303456629085,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2023-01-01,931,1088,42932,2.5342401937948384,Avustavat kaivos- ja rakennustyöntekijät
+2023-01-01,531,897,42932,2.08935060095034,Lastenhoitajat ja koulunkäyntiavustajat
+2023-02-01,911,10887,43280,25.154805914972272,"Koti-, hotelli- ja toimistosiivoojat ym."
+2023-02-01,711,3588,43280,8.290203327171904,Rakennustyöntekijät ym.
+2023-02-01,821,2044,43280,4.722735674676525,Teollisuustuotteiden kokoonpanijat
+2023-02-01,816,1829,43280,4.225970425138632,Elintarviketeollisuuden prosessityöntekijät
+2023-02-01,611,1415,43280,3.269408502772643,Pelto- ja puutarhaviljelijät
+2023-02-01,941,1384,43280,3.197781885397412,Avustavat keittiö- ja ruokatyöntekijät
+2023-02-01,921,1243,43280,2.871996303142329,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2023-02-01,721,1102,43280,2.5462107208872458,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2023-02-01,931,1019,43280,2.3544362292051755,Avustavat kaivos- ja rakennustyöntekijät
+2023-02-01,531,951,43280,2.1973197781885396,Lastenhoitajat ja koulunkäyntiavustajat
+2023-03-01,911,11038,43736,25.23779037863545,"Koti-, hotelli- ja toimistosiivoojat ym."
+2023-03-01,711,3427,43736,7.83565026522773,Rakennustyöntekijät ym.
+2023-03-01,821,2115,43736,4.835833180903604,Teollisuustuotteiden kokoonpanijat
+2023-03-01,816,1756,43736,4.01499908542162,Elintarviketeollisuuden prosessityöntekijät
+2023-03-01,611,1689,43736,3.8618072068776295,Pelto- ja puutarhaviljelijät
+2023-03-01,941,1377,43736,3.148436070971282,Avustavat keittiö- ja ruokatyöntekijät
+2023-03-01,921,1306,43736,2.98609840863362,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2023-03-01,721,1182,43736,2.702579111029815,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2023-03-01,931,1020,43736,2.3321748673861347,Avustavat kaivos- ja rakennustyöntekijät
+2023-03-01,531,995,43736,2.2750137186756905,Lastenhoitajat ja koulunkäyntiavustajat
+2023-04-01,911,11059,43259,25.564622390716384,"Koti-, hotelli- ja toimistosiivoojat ym."
+2023-04-01,711,3260,43259,7.536004068517534,Rakennustyöntekijät ym.
+2023-04-01,821,2091,43259,4.833676229223976,Teollisuustuotteiden kokoonpanijat
+2023-04-01,611,1801,43259,4.163295499202478,Pelto- ja puutarhaviljelijät
+2023-04-01,816,1702,43259,3.9344413879192768,Elintarviketeollisuuden prosessityöntekijät
+2023-04-01,921,1404,43259,3.245567396379944,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2023-04-01,941,1363,43259,3.150789431101043,Avustavat keittiö- ja ruokatyöntekijät
+2023-04-01,721,1163,43259,2.6884578931551815,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2023-04-01,531,1017,43259,2.3509558704547033,Lastenhoitajat ja koulunkäyntiavustajat
+2023-04-01,931,959,43259,2.2168797244504037,Avustavat kaivos- ja rakennustyöntekijät
+2023-05-01,911,10907,42486,25.671986065998208,"Koti-, hotelli- ja toimistosiivoojat ym."
+2023-05-01,711,2994,42486,7.047027256037283,Rakennustyöntekijät ym.
+2023-05-01,611,2139,42486,5.034599632820223,Pelto- ja puutarhaviljelijät
+2023-05-01,821,2062,42486,4.8533634609047684,Teollisuustuotteiden kokoonpanijat
+2023-05-01,816,1656,42486,3.8977545544414633,Elintarviketeollisuuden prosessityöntekijät
+2023-05-01,921,1555,42486,3.660029186084828,"Maa-, metsä- ja kalatalouden avustavat työntekijät"
+2023-05-01,941,1342,42486,3.15868756766935,Avustavat keittiö- ja ruokatyöntekijät
+2023-05-01,721,1133,42486,2.666760815327402,"Valimotyöntekijät, hitsaajat, levysepät ym."
+2023-05-01,531,1001,42486,2.3560702349009084,Lastenhoitajat ja koulunkäyntiavustajat
+2023-05-01,931,917,42486,2.1583580473567765,Avustavat kaivos- ja rakennustyöntekijät
