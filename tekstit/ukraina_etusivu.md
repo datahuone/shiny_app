@@ -2,11 +2,11 @@
 ## Tilapäisen suojelun piirissä olevat ukrainalaiset Suomessa 
 
 <font size="4"> 
-Tilastokeskuksen rekisteriaineistojen mukaan Ukrainan sodan alettua Suomeen on saapunut noin 45 000 ukrainalaista (30.4.2023 mennessä)
+Tilastokeskuksen rekisteriaineistojen mukaan Ukrainan sodan alettua Suomeen on saapunut noin 47 000 ukrainalaista (31.5.2023 mennessä)
 
 - heistä suurin osa on naisia ja lapsia
-- kotikunnan on 30.4.2023 mennessä saanut 4 167 ukrainalaista (luvut voivat vielä revisioitua, koska kirjaukset tulevat osin viiveellä)
-- heistä noin 6 000 henkilöä oli huhtikuussa 2023 tulorekisterin mukaan palkansaajia
+- kotikunnan on 31.5.2023 mennessä saanut noin 5768 ukrainalaista (luvut voivat vielä revisioitua, koska kirjaukset tulevat osin viiveellä)
+- heistä noin 6 700 henkilöä oli toukokuussa 2023 tulorekisterin mukaan palkansaajia
 - suurin osa tilapäisen suojelun piirissä olevista ovat työllistyneet joko siivojiksi tai maa- ja metsätaloustöihin.
 
 </font> 
