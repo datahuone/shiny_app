@@ -1914,33 +1914,22 @@ server <- function(input, output, session) {
     if(input$alavaiammatti == "toimialat") {
 
       ## yleisimmät toimialat
-      top <- toimialat %>%
+      top <<- toimialat %>%
         group_by(toimiala) %>%
         dplyr::summarise(n = mean(n)) %>%
         arrange(desc(n)) %>% slice(1:input$top) %>%
         pull(toimiala)
-
-      ## rajaa
-      data <- toimialat %>%
-        filter(tilasto_time > ymd("2022-04-01")) %>%
-        filter(toimiala %in% top) %>%
-        mutate(ala = toimiala)
-
+      data <- toimialat
 
     } else {
 
       ## yleisimmät ammatit
-      top <- ammatit %>%
+      top <<- ammatit %>%
         group_by(prof_l3) %>%
         dplyr::summarise(n = mean(n))  %>%
         arrange(desc(n)) %>% slice(1:input$top) %>%
         pull(prof_l3)
-
-      ## rajaa
-      data <- ammatit %>%
-        filter(tilasto_time > ymd("2022-04-01")) %>%
-        filter(prof_l3 %in% top) %>%
-        mutate(ala = nimi_fi)
+      data <- ammatit
     }
 
     return(data)
@@ -1951,12 +1940,18 @@ server <- function(input, output, session) {
     ## get data
     data <-  ukraina_alat_ja_ammatit()
 
+
+
     if (input$alavaiammatti == "toimialat") {
+
       ## plot
       p <- Ukraina_kuvaaja(data, "toimiala", FALSE, "lukumäärä", "ala", "henkilöä", alpha_u, font_size)
+
     } else if (input$alavaiammatti == "ammattinimikkeet") {
+
       ## plot
       p <- Ukraina_kuvaaja(data, "ammatti", FALSE, "lukumäärä", "ala", "henkilöä", alpha_u, font_size)
+
     }
 
   })
