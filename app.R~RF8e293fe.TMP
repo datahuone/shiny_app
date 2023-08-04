@@ -546,17 +546,19 @@ server <- function(input, output, session) {
         mutate(time = lubridate::ymd_hms(time)) %>%
         mutate(time = lubridate::floor_date(time, unit = "hours"))
 
-      energialahteet <- fetch_energialahteet()
+      energiantuotanto_list <<- lapply(energialahteet, assign_energiantuotanto) #funktio, joka määrittelee uuden muuttujan (energiatuotanto_tuulivoima jne.) ja hakee sille arvon FG:n apista
 
-      #assign_energiantuotanto() on funktio, joka määrittelee uuden muuttujan (energiatuotanto_tuulivoima jne.) ja hakee sille arvon FG:n apista
-      energiantuotanto_data_frame <<- do.call(data.frame, lapply(energialahteet, assign_energiantuotanto))
+      energiantuotanto_data_frame <<- do.call(data.frame, energiantuotanto_list)
 
-      energiantuotanto_data_frame <<- energiantuotanto_data_frame %>%
-        select(c(2, 1, 3:ncol(energiantuotanto_data_frame))) %>% #siirrä aikasarake df:n vasempaan reunaan
-        select(-grep("time.", colnames(energiantuotanto_data_frame))) %>% #Poista redundantit aikasarakkeet
-        set_colnames(c("time", gsub(" ", "_", gsub("reaali ", "", energialahteet)))) %>%
-        mutate(yhteistuotanto = yhteistuotanto_kaukolämpö + yhteistuotanto_teollisuus,
-               yhteistuotanto_kaukolämpö = NULL, yhteistuotanto_teollisuus = NULL)
+      energiantuotanto_data_frame <<- energiantuotanto_data_frame[, c(2,1,3:ncol(energiantuotanto_data_frame))] #Tässä joututaan tekemään vähän taikatemppuja siirtämällä aikasarake df:n vasempaan reunaan ja poistamalla muut redundantit aikasarakkeet. Korjaa jossain vaiheessa.
+      energiantuotanto_data_frame <<- energiantuotanto_data_frame[,-grep("time.", colnames(energiantuotanto_data_frame))]
+
+      print(energiantuotanto_data_frame)
+
+      energiantuotanto_data_frame$yhteistuotanto <<- energiantuotanto_data_frame[,5] + energiantuotanto_data_frame[,6]
+      colnames(energiantuotanto_data_frame) <<- c("time", energialahteet, "yhteistuotanto")
+      energiantuotanto_data_frame <<- energiantuotanto_data_frame[,c(1:4, 7:10)]
+      colnames(energiantuotanto_data_frame) <<- gsub("reaali ", "", colnames(energiantuotanto_data_frame))
 
       print("energy production ready!")
 
@@ -699,6 +701,18 @@ server <- function(input, output, session) {
     }
 
   })
+
+# Siirrä tämä muualle tai toteuta paremmin
+
+  energialahteet <- c("reaali tuulivoima",
+                      "reaali vesivoima",
+                      "reaali tehoreservi",
+                      "reaali yhteistuotanto kaukolämpö",
+                      "reaali yhteistuotanto teollisuus",
+                      "reaali pientuotanto",
+                      "reaali ydinvoima",
+                      "reaali kokonaiskulutus")
+
 
   # valueboxit -----------------------------
 
@@ -935,6 +949,50 @@ server <- function(input, output, session) {
             legend.text = element_text(size= 14))
 
   })
+
+  #output$viikkoplot_dekomponoitu <- renderPlot({
+#
+ #
+#
+ #   energiantuotanto_data_frame %>%
+  #    ggplot(aes(x = time,
+   #              y = tuotanto,
+    #             fill = Energialähde,
+     #            colour = Energialähde
+      #           )) +
+
+     # geom_bar(position = "stack", stat = "identity") +
+
+      #scale_fill_manual(
+        #name = NULL,
+        #labels = c("pientuotanto", "tuulivoima", "ydinvoima",
+        #           "tehoreservi", "vesivoima", "yhteistuotanto"),
+        #values = c("#393594","#721d41", "#CC8EA0", "#FBE802", "#F16C13", "#FFF1E0"
+        #)) +
+
+      #geom_line(aes(x = time,
+      #              y = kokonaiskulutus,
+      #              #fill = kokonaiskulutus
+      #              colour = kokonaiskulutus
+      #              ),
+      #          #stat = "identity",
+      #          lwd = 1.5
+      #          ) +
+
+     # scale_y_continuous(label = tuhaterotin) +
+     # scale_x_datetime(breaks = "1 day",
+    #                   date_labels = "%d.%m.") +
+
+   #     theme_light() +
+   #      labs(x = NULL, y = 'MW')+
+   #     theme(legend.position = 'bottom') +
+   #    theme(axis.text = element_text(size = 14),
+   #           axis.title = element_text(size = 14),
+   #           legend.text = element_text(size= 14))
+
+    #ggplotly()
+
+  #})
 
   output$viikkoplot_dekomponoitu <- renderPlot({
 
@@ -1806,6 +1864,24 @@ server <- function(input, output, session) {
 
     if(input$jaottelu == "-") {
 
+      ## plot
+      #p <- summary %>%
+      #  rename("aika" = "tilasto_time") %>%
+      #  rename("lukumäärä" = "n_total") %>%
+      #  ggplot(aes(x = aika)) +
+      #  geom_col(aes(y = lukumäärä), fill = orange, alpha = alpha_u) +
+      #  scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
+      #  scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
+      #  theme_light() +
+      #  theme(legend.position = "bottom",
+      #        text = element_text(size = font_size),
+      #        legend.title = element_blank(),
+      #        panel.grid.major.x = element_blank(),
+      #        panel.grid.minor.x = element_blank(),
+      #        plot.caption = element_text(hjust = 0),
+      #        axis.text.x = element_text(angle = 45, hjust = 1, size = font_size))
+      #ggplotly(p)
+
       p <- Ukraina_kuvaaja(data, "none", FALSE, "lukumäärä", NULL, "henkilöä", alpha_u, font_size)
 
     } else if(input$jaottelu == "ikäryhmä") {
@@ -1951,13 +2027,26 @@ server <- function(input, output, session) {
     ## get data
     data <-  ukraina_alat_ja_ammatit()
 
-    if (input$alavaiammatti == "toimialat") {
-      ## plot
-      p <- Ukraina_kuvaaja(data, "toimiala", FALSE, "lukumäärä", "ala", "henkilöä", alpha_u, font_size)
-    } else if (input$alavaiammatti == "ammattinimikkeet") {
-      ## plot
-      p <- Ukraina_kuvaaja(data, "ammatti", FALSE, "lukumäärä", "ala", "henkilöä", alpha_u, font_size)
-    }
+    ## plot
+    p <- data %>%
+      rename("aika" = "tilasto_time") %>%
+      rename("lukumäärä" = "n") %>%
+      ggplot(aes(x = aika)) +
+      scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
+      geom_col(aes(y = lukumäärä, fill = ala), alpha = alpha_u) +
+      scale_fill_manual(values = c(colors, "black")) +
+      scale_y_continuous(name = "henkilöä") +
+      theme_light() +
+      theme(legend.position = "bottom",
+            legend.title = element_blank(),
+            text = element_text(size = font_size),
+            panel.grid.major.x = element_blank(),
+            panel.grid.minor.x = element_blank(),
+            plot.title = element_text(hjust = 0.5, size = 13),
+            plot.caption = element_text(hjust = 0),
+            axis.text.x = element_text(angle = 45, hjust = 1))
+    ggplotly(p) %>%
+      layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
 
   })
 
@@ -1966,13 +2055,13 @@ server <- function(input, output, session) {
   ## otsikot --------------------------------
   output$toimialat_otsikko <- renderText({
 
-    lkm <- numerolle_teksti(input$top)
+    lkm <- input$top
 
-    if(lkm == "Yksi"){
+    if(lkm == 1){
       if(input$alavaiammatti == "toimialat") {
-        paste0( "Yleisin toimiala")
+        paste0( "yleisin toimiala")
       } else {
-        paste0("Yleisin ammattinimike")
+        paste0("yleisin ammattinimike")
       }
     } else {
       if(input$alavaiammatti == "toimialat"){

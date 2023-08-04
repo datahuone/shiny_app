@@ -206,7 +206,6 @@ Ukraina_kuvaaja <- function(data, jaottelu, osuus, variable, grouping, ylabtxt, 
   #function(data.frame, str, boolean, str, str, str)
 
   data <- Ukraina_aggregaattori(data, jaottelu)
-  Ukraina_colours <- colors
 
   if (osuus) {
 
@@ -216,7 +215,6 @@ Ukraina_kuvaaja <- function(data, jaottelu, osuus, variable, grouping, ylabtxt, 
 
   if (jaottelu == "none") {
     lookup = c("aika"="tilasto_time", "lukumäärä"="n_total")
-    Ukraina_colours <- colors[8]
   } else if (grouping == "ikäryhmä" & osuus == FALSE) {
     lookup = c("aika"="tilasto_time", "lukumäärä"="n", "ikäryhmä"="age_group")
   } else if (grouping == "sukupuoli" & osuus == FALSE) {
@@ -225,24 +223,14 @@ Ukraina_kuvaaja <- function(data, jaottelu, osuus, variable, grouping, ylabtxt, 
     lookup = c("aika"="tilasto_time", "osuus"="n", "ikäryhmä"="age_group")
   } else if (grouping == "sukupuoli" & osuus == TRUE) {
     lookup = c("aika"="tilasto_time", "osuus"="n")
-  } else if (grouping == "ala" & osuus == FALSE & jaottelu != "ammatti") {
-    lookup = c("aika" = "tilasto_time", "lukumäärä"="n", "ala" = "toimiala")
-  } else if (jaottelu == "ammatti" & osuus == FALSE) {
-    lookup = c("aika" = "tilasto_time", "lukumäärä"="n", "ala" = "nimi_fi")
   }
-
-  print(data)
 
   p <- data %>%
     rename(any_of(lookup)) %>%
-    ggplot(aes(x = aika))
-  if (jaottelu == "none") {
-    p <- p + geom_col(aes_string(y = variable, fill = grouping), fill = colors[8], alpha = alpha_u)
-  } else {
-    p <- p + geom_col(aes_string(y = variable, fill = grouping), alpha = alpha_u)
-  }
-    p <- p + scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-    scale_fill_manual(values = Ukraina_colours) +
+    ggplot(aes(x = aika)) +
+    geom_col(aes_string(y = variable, fill = grouping), alpha = alpha_u) +
+    scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
+    scale_fill_manual(values = colors) +
     scale_y_continuous(name = ylabtxt, labels = tuhaterotin) +
     theme_light() +
     theme(legend.position = "bottom",
@@ -266,12 +254,6 @@ Ukraina_aggregaattori <- function(data, param) {
            summarise(n = sum(n)),
          sukupuoli = data %>%
            group_by(tilasto_time, n_total, sukupuoli) %>%
-           summarise(n = sum(n)),
-         toimiala = data %>%
-           group_by(tilasto_time, n_total, toimiala) %>%
-           summarise(n = sum(n)),
-         ammatti = data %>%
-           group_by(tilasto_time, n_total, ala) %>%
            summarise(n = sum(n)))
 
 }
@@ -284,31 +266,6 @@ assign_energiantuotanto <- function(nimi_energialahde) {
            mutate(time = lubridate::ymd_hms(time)) %>%
            mutate(time = lubridate::floor_date(time, unit = "hours")))
 
-}
-
-numerolle_teksti <- function(numero) {
-
-  switch(as.character(numero), #Switch tekee käytännössä saman asian kuin dict (vrt. fingrid_sanakirja())
-         "1" = "Yksi",
-         "2" = "Kaksi",
-         "3" = "Kolme",
-         "4" = "Neljä",
-         "5" = "Viisi",
-         "6" = "Kuusi",
-         "7" = "Seitsemän",
-         "8" = "Kahdeksan")
-
-}
-
-fetch_energialahteet <- function() {
-  return(c("reaali tuulivoima",
-           "reaali vesivoima",
-           "reaali tehoreservi",
-           "reaali yhteistuotanto kaukolämpö",
-           "reaali yhteistuotanto teollisuus",
-           "reaali pientuotanto",
-           "reaali ydinvoima",
-           "reaali kokonaiskulutus"))
 }
 
 
