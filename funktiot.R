@@ -176,7 +176,6 @@ ota_yhteys_fingrid_api <- function(url){
              select(-end_time) %>%
              rename(time = start_time))
 
-
 }
 
 lataa_kaikki <- function(){
@@ -284,9 +283,8 @@ Ukraina_aggregaattori <- function(data, param) {
 
 }
 
-assign_energiantuotanto <- function(nimi_energialahde) {
-  print(nimi_energialahde)
-  assign(paste0("energiantuotanto_", gsub("reaali ", "", nimi_energialahde)), lataa_aikasarja_fingrid(nimi_energialahde) %>%
+assign_energiantuotanto <- function(nimi_energialahde, startTime) {
+  assign(paste0("energiantuotanto_", gsub("reaali ", "", nimi_energialahde)), lataa_aikasarja_fingrid(nimi_energialahde, alku = as.POSIXct(startTime)) %>%
            arrange(desc(time)) %>%
            slice(which(row_number() %% 20 == 1)) %>%
            mutate(time = lubridate::ymd_hms(time)) %>%

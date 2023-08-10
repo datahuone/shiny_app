@@ -15,6 +15,7 @@ library(jsonlite, warn.conflicts = F)
 library(plotly, warn.conflicts = F)
 library(shiny.router)
 library(plotly, warn.conflicts = FALSE)
+library(magrittr, warn.conflicts = FALSE)
 
 source("funktiot.R", encoding = 'UTF-8')
 
@@ -348,36 +349,57 @@ ui <- navbarPage(
         ),
  # reaaliaikainen ----------------------------------------------
      tabPanel(
+
        title = "Reaaliaikainen sähkönkäyttötilanne",
        value = sah_reaaliaikainen_url,
-       fluidPage(
-         fluidRow(
-           h1("Reaaliaikainen sähkönkäyttötilanne")
+       sidebarLayout(
+         sidebarPanel(
+           dateRangeInput(
+             "sahkoDate", "Valitse Aikaväli:",
+             start = Sys.time()-lubridate::weeks(1),
+             end = Sys.time()
+             #min = Sys.time()-lubridate::year(1)
+           )
          ),
-         fluidRow(
-           valueBoxOutput("kokonaiskulutus", width = 4),
-           valueBoxOutput("kokonaistuotanto", width = 4),
-           valueBoxOutput("tuulisuhde", width = 4)
-         ),
-         fluidRow(
-           valueBoxOutput("muutoskulutus", width = 4),
-           valueBoxOutput("muutostuotanto", width = 4),
-           valueBoxOutput("nettovienti", width = 4)
-         ),
-         fluidRow(h2("Sähkön kulutus sekä tuotanto viimeisen viikon aikana")),
-         fluidRow(
-           column(plotOutput("viikkoplot"), width = 10)
-         ),
-         fluidRow(
-           column(plotOutput("viikkoplot_dekomponoitu"), width = 10)
-         ),
-         fluidRow(
-           column(
-             p("Lähde: Fingridin avoin data -verkkopalvelu"),width = 4
+
+         mainPanel(
+           fluidRow(
+             h1("Reaaliaikainen sähkönkäyttötilanne")
+           ),
+           fluidRow(
+             valueBoxOutput("kokonaiskulutus", width = 4),
+             valueBoxOutput("kokonaistuotanto", width = 4),
+             valueBoxOutput("tuulisuhde", width = 4)
+           ),
+           fluidRow(
+             valueBoxOutput("muutoskulutus", width = 4),
+             valueBoxOutput("muutostuotanto", width = 4),
+             valueBoxOutput("nettovienti", width = 4)
+           ),
+           fluidRow(h2("Sähkön kulutus sekä tuotanto viimeisen viikon aikana")),
+           fluidRow(
+             column(plotOutput("viikkoplot"), width = 10)
+           ),
+           fluidRow(
+             column(plotOutput("viikkoplot_dekomponoitu"), width = 10)
+           ),
+           fluidRow(
+             column(
+               p("Lähde: Fingridin avoin data -verkkopalvelu"),width = 4
+             )
+           ),
+
+           fluidRow(
+             column(12, splitLayout(cellWidths = c("50%", "50%"), includeMarkdown("tekstit/yhteistuotanto.md"),
+                                    includeMarkdown("tekstit/pientuotanto.md")))
            )
          )
+
+
        )
+
      ),
+
     tabPanel(
       title = "Taustaa datasta",
       #value = ,  #valueta käyteteään url muodostamiseen
@@ -527,7 +549,6 @@ server <- function(input, output, session) {
   observeEvent(input$navbarID, {
     #hakee fingridin viikkodatan vain jos on sahkonkulutus/reaaliaikainen välilehdellä'
     if(input$navbarID == sahk_etusivu_url){
-      print("fetching and preparing energy production!")
       viikko_data_fd <<- lataa_viikko_fingridistä() %>%
         arrange(desc(time)) %>%
         slice(which(row_number() %% 20 == 1)) %>%
@@ -546,20 +567,6 @@ server <- function(input, output, session) {
         mutate(time = lubridate::ymd_hms(time)) %>%
         mutate(time = lubridate::floor_date(time, unit = "hours"))
 
-      energialahteet <- fetch_energialahteet()
-
-      #assign_energiantuotanto() on funktio, joka määrittelee uuden muuttujan (energiatuotanto_tuulivoima jne.) ja hakee sille arvon FG:n apista
-      energiantuotanto_data_frame <<- do.call(data.frame, lapply(energialahteet, assign_energiantuotanto))
-
-      energiantuotanto_data_frame <<- energiantuotanto_data_frame %>%
-        select(c(2, 1, 3:ncol(energiantuotanto_data_frame))) %>% #siirrä aikasarake df:n vasempaan reunaan
-        select(-grep("time.", colnames(energiantuotanto_data_frame))) %>% #Poista redundantit aikasarakkeet
-        set_colnames(c("time", gsub(" ", "_", gsub("reaali ", "", energialahteet)))) %>%
-        mutate(yhteistuotanto = yhteistuotanto_kaukolämpö + yhteistuotanto_teollisuus,
-               yhteistuotanto_kaukolämpö = NULL, yhteistuotanto_teollisuus = NULL)
-
-      print("energy production ready!")
-
     }
   })
 
@@ -572,6 +579,26 @@ server <- function(input, output, session) {
       uusin_vienti <<- lataa_viimeisin_fingrid("reaali vienti")
     }
   })
+
+  #observeEvent(input$navbarID, {
+    #Hakee FG:n reaaliaikaisen eritellyn sähköntuotantodatan vain jos Reaaliaikainen sähkönkäyttötilanne -välilehdellä
+  #  if (input$navbarID == sahk_etusivu_url) {
+
+  #    energialahteet <<- fetch_energialahteet()
+
+      #assign_energiantuotanto() on funktio, joka määrittelee uuden muuttujan (energiatuotanto_tuulivoima jne.) ja hakee sille arvon FG:n apista
+  #    energiantuotanto_data_frame <<- do.call(data.frame, lapply(energialahteet, assign_energiantuotanto))
+
+  #    energiantuotanto_data_frame <<- energiantuotanto_data_frame %>%
+  #      select(c(2, 1, 3:ncol(energiantuotanto_data_frame))) %>% #siirrä aikasarake df:n vasempaan reunaan
+  #      select(-grep("time.", colnames(energiantuotanto_data_frame))) %>% #Poista redundantit aikasarakkeet
+  #      set_colnames(c("time", gsub(" ", "_", gsub("reaali ", "", energialahteet)))) %>%
+  #      mutate(yhteistuotanto = yhteistuotanto_kaukolämpö + yhteistuotanto_teollisuus,
+  #             yhteistuotanto_kaukolämpö = NULL, yhteistuotanto_teollisuus = NULL)
+
+  #  }
+
+  #})
 
   # Ikonit etusivulla -------------------------------------------------------
 
@@ -697,6 +724,27 @@ server <- function(input, output, session) {
         mutate(alue = 'Suomi')
 
     }
+
+  })
+
+  #print(input$sahkoDate)
+  globalEndTime <- reactive({
+    return(input$sahkoDate[1])
+  })
+
+  energiantuotanto_data_frame <- reactive({
+
+    energialahteet <- fetch_energialahteet()
+
+    #assign_energiantuotanto() on funktio, joka määrittelee uuden muuttujan (energiatuotanto_tuulivoima jne.) ja hakee sille arvon FG:n apista
+    energiantuotanto_data_frame <- do.call(data.frame, lapply(energialahteet, assign_energiantuotanto, startTime = globalEndTime()))
+
+    energiantuotanto_data_frame <- energiantuotanto_data_frame %>%
+      select(c(2, 1, 3:ncol(energiantuotanto_data_frame))) %>% #siirrä aikasarake df:n vasempaan reunaan
+      select(-grep("time.", colnames(energiantuotanto_data_frame))) %>% #Poista redundantit aikasarakkeet
+      set_colnames(c("time", gsub(" ", "_", gsub("reaali ", "", energialahteet)))) %>%
+      mutate(yhteistuotanto = yhteistuotanto_kaukolämpö + yhteistuotanto_teollisuus,
+             yhteistuotanto_kaukolämpö = NULL, yhteistuotanto_teollisuus = NULL)
 
   })
 
@@ -938,6 +986,18 @@ server <- function(input, output, session) {
 
   output$viikkoplot_dekomponoitu <- renderPlot({
 
+    energiantuotanto_data_frame <- energiantuotanto_data_frame()
+
+    if (Sys.time() - as.POSIXct(globalEndTime()) > lubridate::weeks(4)) {
+      energiantuotanto_data_frame <- energiantuotanto_data_frame %>%
+        mutate(time = lubridate::floor_date(time, unit = "days")) %>%
+        group_by(time) %>%
+        dplyr::summarise(across(c("pientuotanto", "tehoreservi", "tuulivoima",
+                                  "vesivoima", "ydinvoima", "yhteistuotanto", "kokonaiskulutus"), ~mean(.x)))# = sum(.data[[(input$muuttuja12)]])) %>%
+    }
+
+      print(energiantuotanto_data_frame)
+
     energiantuotanto_data_frame %>%
       pivot_longer(cols = c(pientuotanto, tuulivoima, ydinvoima, tehoreservi, vesivoima, yhteistuotanto)) %>%
       pivot_longer(cols = c(kokonaiskulutus),
@@ -951,7 +1011,7 @@ server <- function(input, output, session) {
                          values = c("#721d41", "#CC8EA0", "#FBE802", "#F16C13", "#FFF1E0", "#AED136")) +
       geom_line(aes(y = kokonaiskulutus_arvo, col = kokonaiskulutus), size = 1.25) +
       scale_x_continuous(label = tuhaterotin) +
-      scale_x_datetime(breaks = "1 day",
+      scale_x_datetime(breaks = "1 week",
                        date_labels = "%d.%m.") +
       scale_color_manual(name = NULL,
                          labels = c("kokonaiskulutus"),
