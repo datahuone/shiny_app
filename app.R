@@ -14,6 +14,9 @@ library(httr, warn.conflicts = F)
 library(jsonlite, warn.conflicts = F)
 library(plotly, warn.conflicts = F)
 library(shiny.router)
+library(plotly, warn.conflicts = FALSE)
+library(magrittr, warn.conflicts = FALSE)
+library(shinyjs, warn.conflicts = FALSE)
 
 source("funktiot.R", encoding = 'UTF-8')
 
@@ -347,33 +350,72 @@ ui <- navbarPage(
         ),
  # reaaliaikainen ----------------------------------------------
      tabPanel(
+
+       shinyjs::useShinyjs(),
+
        title = "Reaaliaikainen sähkönkäyttötilanne",
        value = sah_reaaliaikainen_url,
-       fluidPage(
-         fluidRow(
-           h1("Reaaliaikainen sähkönkäyttötilanne")
+       sidebarLayout(
+         sidebarPanel(
+           dateRangeInput(
+             "sahkoDate", "Valitse Aikaväli:",
+             start = Sys.time()-lubridate::weeks(1),
+             end = Sys.time(),
+             min = lubridate::as_datetime("27-11-2019", format = "%d-%m-%Y"),
+             max = Sys.time()
+           ),
+
+           checkboxGroupInput("reaaliaikaKuvaajaAsetus", "Muokkaa esitysmuotoa",
+                              c("Näytä kuvaaja aina tunneittain"), selected = NA),
+
+           p("Voit muokata esitysmuotoa yllä olevilla asetuksilla. Kuvaajan oletusasetus on muuttaa tarkasteluaikaväli päiviin, kun valittu aikaväli on pidempi kuin kuukausi.
+             Tätä asetusta voi muuttaa, mutta kuvaaja saattaa tällöin latautua hitaasti. Ladattavaan dataan vaikuttaa ainoastaan valittu aikaväli."),
+
+           actionButton("resetSahko", "Palauta oletusasetukset")
          ),
-         fluidRow(
-           valueBoxOutput("kokonaiskulutus", width = 4),
-           valueBoxOutput("kokonaistuotanto", width = 4),
-           valueBoxOutput("tuulisuhde", width = 4)
-         ),
-         fluidRow(
-           valueBoxOutput("muutoskulutus", width = 4),
-           valueBoxOutput("muutostuotanto", width = 4),
-           valueBoxOutput("nettovienti", width = 4)
-         ),
-         fluidRow(h2("Sähkön kulutus sekä tuotanto viimeisen viikon aikana")),
-         fluidRow(
-           column(plotOutput("viikkoplot"), width = 10)
-         ),
-         fluidRow(
-           column(
-             p("Lähde: Fingridin avoin data -verkkopalvelu"),width = 4
+
+         mainPanel(
+           fluidRow(
+             h1("Reaaliaikainen sähkönkäyttötilanne")
+           ),
+           fluidRow(
+             valueBoxOutput("kokonaiskulutus", width = 4),
+             valueBoxOutput("kokonaistuotanto", width = 4),
+             valueBoxOutput("tuulisuhde", width = 4)
+           ),
+           fluidRow(
+             valueBoxOutput("muutoskulutus", width = 4),
+             valueBoxOutput("muutostuotanto", width = 4),
+             valueBoxOutput("nettovienti", width = 4)
+           ),
+           fluidRow(h2("Sähkön kulutus sekä tuotanto viimeisen viikon aikana")),
+           fluidRow(
+             column(plotOutput("viikkoplot"), width = 10)
+           ),
+           fluidRow(
+             column(plotOutput("viikkoplot_dekomponoitu"), width = 10)
+           ),
+           fluidRow(
+             column(
+               p("Lähde: Fingridin avoin data -verkkopalvelu"),width = 4
+             )
+           ),
+
+           fluidRow(
+             downloadButton("download_dekomponoitu", "Lataa csv")
+           ),
+
+           fluidRow(
+             column(12, splitLayout(cellWidths = c("50%", "50%"), includeMarkdown("tekstit/yhteistuotanto.md"),
+                                    includeMarkdown("tekstit/pientuotanto.md")))
            )
          )
+
+
        )
+
      ),
+
     tabPanel(
       title = "Taustaa datasta",
       #value = ,  #valueta käyteteään url muodostamiseen
@@ -417,6 +459,7 @@ ui <- navbarPage(
                       checkboxInput(inputId = "osuus",
                                     label = "prosentteina",
                                     value = FALSE),
+                      p("Voit nähdä tarkan lukumäärän tai osuuden viemällä kursorin haluamasi palkin päälle."),
                       p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon."),
                       p(strong("Huom!"),"Mikäli jonkin kuukauden tiedot eivät ole näkyvissä, tiedot on jouduttu peittämään liian pienen havaintomäärän takia.")
                     ),
@@ -444,6 +487,7 @@ ui <- navbarPage(
                       checkboxInput(inputId = "osuus_emp",
                                     label = "prosentteina",
                                     value = FALSE),
+                      p("Voit nähdä tarkan lukumäärän tai osuuden viemällä kursorin haluamasi palkin päälle."),
                       p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon."),
                       p(strong("Huom!"),"Mikäli jonkin kuukauden tiedot eivät ole näkyvissä, tiedot on jouduttu peittämään liian pienen havaintomäärän takia.")
                     ),
@@ -468,6 +512,7 @@ ui <- navbarPage(
                       selectInput("top", "Valitse tarkasteltavien alojen lkm",
                                   choices= c(1:8),
                                   selected = 5),
+                      p("Voit nähdä tarkan lukumäärän tai osuuden viemällä kursorin haluamasi palkin päälle."),
                       p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon."),
                       p(strong("Huom!"),"Mikäli jonkin kuukauden tiedot eivät ole näkyvissä, tiedot on jouduttu peittämään liian pienen havaintomäärän takia.")
                     ),
@@ -520,20 +565,20 @@ server <- function(input, output, session) {
   observeEvent(input$navbarID, {
     #hakee fingridin viikkodatan vain jos on sahkonkulutus/reaaliaikainen välilehdellä'
     if(input$navbarID == sahk_etusivu_url){
-      viikko_data_fd <<- lataa_viikko_fingridistä() %>%
+
+      vuorokausi_sitten <<- kokonaiskulutus_kokonaistuotanto_data_fd() %>%
+        filter(time == lubridate::floor_date(
+          Sys.time()-lubridate::days(1),
+          unit = "hours"))
+
+      kokonaiskulutus_kokonaistuotanto_data_fd_tuuli <<- lataa_aikasarja_fingrid("reaali tuulivoima") %>%
         arrange(desc(time)) %>%
         slice(which(row_number() %% 20 == 1)) %>%
         mutate(time = lubridate::ymd_hms(time)) %>%
         mutate(time = lubridate::floor_date(time, unit = "hours"))
 
-
-      vuorokausi_sitten <<- viikko_data_fd %>%
-        filter(time == lubridate::floor_date(
-          Sys.time()-lubridate::days(1),
-          unit = "hours"))
     }
   })
-
 
   observeEvent(input$navbarID, {
     #hakee fingridin reaaliaikaisen datan vain jos on sahkonkulutus/reaaliaikainen tai sahkonkulutus välilehdillä'
@@ -544,6 +589,26 @@ server <- function(input, output, session) {
       uusin_vienti <<- lataa_viimeisin_fingrid("reaali vienti")
     }
   })
+
+  #observeEvent(input$navbarID, {
+    #Hakee FG:n reaaliaikaisen eritellyn sähköntuotantodatan vain jos Reaaliaikainen sähkönkäyttötilanne -välilehdellä
+  #  if (input$navbarID == sahk_etusivu_url) {
+
+  #    energialahteet <<- fetch_energialahteet()
+
+      #assign_energiantuotanto() on funktio, joka määrittelee uuden muuttujan (energiatuotanto_tuulivoima jne.) ja hakee sille arvon FG:n apista
+  #    energiantuotanto_data_frame <<- do.call(data.frame, lapply(energialahteet, assign_energiantuotanto))
+
+  #    energiantuotanto_data_frame <<- energiantuotanto_data_frame %>%
+  #      select(c(2, 1, 3:ncol(energiantuotanto_data_frame))) %>% #siirrä aikasarake df:n vasempaan reunaan
+  #      select(-grep("time.", colnames(energiantuotanto_data_frame))) %>% #Poista redundantit aikasarakkeet
+  #      set_colnames(c("time", gsub(" ", "_", gsub("reaali ", "", energialahteet)))) %>%
+  #      mutate(yhteistuotanto = yhteistuotanto_kaukolämpö + yhteistuotanto_teollisuus,
+  #             yhteistuotanto_kaukolämpö = NULL, yhteistuotanto_teollisuus = NULL)
+
+  #  }
+
+  #})
 
   # Ikonit etusivulla -------------------------------------------------------
 
@@ -584,6 +649,12 @@ server <- function(input, output, session) {
         "asuntokunnan koko"= boxplotit_askoko
       )
     }
+  })
+
+  observeEvent(input$resetSahko, {
+
+    shinyjs::reset("sahkoDate")
+
   })
 
   boxplot_data <- reactive({
@@ -672,7 +743,130 @@ server <- function(input, output, session) {
 
   })
 
+  #print(input$sahkoDate)
+  globalEndTime <- reactive({
+    return(input$sahkoDate[1])
+  })
 
+  energiantuotanto_data_frame <- reactive({
+
+    energialahteet <- fetch_energialahteet()
+
+      energiantuotanto_data_frame_decomp <- read.csv("./data/energiantuotanto_dekomponoitu.csv")
+
+      colnames(energiantuotanto_data_frame_decomp) <- c("time","kokonaiskulutus","pientuotanto","tehoreservi","tuulivoima",
+                                                        "vesivoima","ydinvoima","yhteistuotanto_kaukolämpö","yhteistuotanto_teollisuus")
+
+
+      if (checkUpdateCondition(as.POSIXct(readLines("data/updateCondition_decomp.txt")[2]))) {
+      #Päivitä lokaalisti säilytettävää FG:n data juioksevasti
+        dataToBeUpdated <- read.csv("./data/energiantuotanto_dekomponoitu.csv")
+
+        energiantuotanto_update <- do.call(data.frame, lapply(energialahteet,
+                                                              assign_energiantuotanto, startTime = max(as.POSIXct(dataToBeUpdated$time) + lubridate::hours(1)), endTime = Sys.time()))
+
+        print("I'm updating")
+
+        energiantuotanto_update <- energiantuotanto_update %>%
+          select(c(2, 1, 3:ncol(energiantuotanto_update))) %>% #siirrä aikasarake df:n vasempaan reunaan
+          select(-grep("time.", colnames(energiantuotanto_update))) %>% #Poista redundantit aikasarakkeet
+          set_colnames(c("time", gsub(" ", "_", gsub("reaali ", "", energialahteet))))
+
+        energiantuotanto_update$time %<>% as.character()
+
+        #Prevent duplicate entries
+        overlap <- intersect(dataToBeUpdated$time, energiantuotanto_update$time)
+        print(overlap)
+        overlap_ind <- which(energiantuotanto_update$time %in% overlap)
+        print(overlap_ind)
+        energiantuotanto_update <- energiantuotanto_update[-c(overlap_ind),]
+        print(energiantuotanto_update)
+
+        energiantuotanto_update$time[nchar(as.character(energiantuotanto_update$time)) <= 10] <- paste(as.character(energiantuotanto_update$time[nchar(as.character(energiantuotanto_update$time)) <= 10]), "00:00:00", sep = " ")
+
+        dataToBeUpdated <- rbind(dataToBeUpdated, energiantuotanto_update) %>%
+          arrange(time)
+
+
+        write.csv(dataToBeUpdated, "./data/energiantuotanto_dekomponoitu.csv",
+                  row.names = FALSE)
+
+        pgirmess::write.delim(as.character.POSIXt(Sys.time()), file = "data/updateCondition_decomp.txt")
+
+        energiantuotanto_data_frame_decomp <- read.csv("./data/energiantuotanto_dekomponoitu.csv")
+
+      }
+
+      energiantuotanto_data_frame_decomp <- energiantuotanto_data_frame_decomp[as.POSIXct(energiantuotanto_data_frame_decomp$time) > as.POSIXct(input$sahkoDate[1]) &
+                                                                                 as.POSIXct(energiantuotanto_data_frame_decomp$time) < Sys.time(),]
+
+      energiantuotanto_data_frame_decomp$time <- as.POSIXct(energiantuotanto_data_frame_decomp$time, format = "%Y-%m-%d %H:%M:%S")
+
+    return(energiantuotanto_data_frame_decomp)
+
+  })
+
+  kokonaiskulutus_kokonaistuotanto_data_fd <- reactive({
+
+    energialahteet <- c("reaali kokonaiskulutus", "reaali kokonaistuotanto")
+
+      energiantuotanto_data_frame_kulutus_tuotanto <- read.csv("./data/energiantuotanto_kulutus_tuotanto.csv")
+
+      #energiantuotanto_data_frame_kulutus_tuotanto <- energiantuotanto_data_frame_kulutus_tuotanto[energiantuotanto_data_frame_kulutus_tuotanto$time > input$sahkoDate[1] &
+      #                                                                                               energiantuotanto_data_frame_kulutus_tuotanto$time < Sys.time(),]
+
+
+      #print(colnames(energiantuotanto_data_frame_kulutus_tuotanto))
+      colnames(energiantuotanto_data_frame_kulutus_tuotanto) <- c("time", "tuotanto", "kulutus")
+
+    if (checkUpdateCondition(as.POSIXct(readLines("data/updateCondition_kulutus_tuotanto.txt")[2]))) {
+      #Päivitä lokaalisti säilytettävää FG:n data juioksevasti
+      dataToBeUpdated <- read.csv("./data/energiantuotanto_kulutus_tuotanto.csv")
+
+      energiantuotanto_update <- do.call(data.frame, lapply(energialahteet,
+                                                            assign_energiantuotanto, startTime = max(dataToBeUpdated$time), endTime = Sys.time()))
+
+      print("I'm updating")
+
+      energiantuotanto_update <- energiantuotanto_update %>%
+        select(c(2, 1, 3:ncol(energiantuotanto_update))) %>% #siirrä aikasarake df:n vasempaan reunaan
+        select(-grep("time.", colnames(energiantuotanto_update))) %>% #Poista redundantit aikasarakkeet
+        set_colnames(c("time", gsub(" ", "_", gsub("reaali ", "", energialahteet)))) #%>%
+
+      energiantuotanto_update$time %<>% as.character()
+
+      #Prevent duplicate entries
+      overlap <- intersect(dataToBeUpdated$time, energiantuotanto_update$time)
+      print(overlap)
+      overlap_ind <- which(energiantuotanto_update$time %in% overlap)
+      print(overlap_ind)
+      energiantuotanto_update <- energiantuotanto_update[-c(overlap_ind),]
+      print(energiantuotanto_update)
+
+
+      dataToBeUpdated <- rbind(dataToBeUpdated, energiantuotanto_update) %>%
+        arrange(time)
+
+      #Remove duplicate entries retroactively. This should not be needed when the program is running normally.
+      dataToBeUpdated <- dataToBeUpdated[!duplicated(dataToBeUpdated$time),]
+
+      write.csv(dataToBeUpdated, "./data/energiantuotanto_kulutus_tuotanto.csv",
+                row.names = FALSE)
+
+      pgirmess::write.delim(as.character.POSIXt(Sys.time()), file = "data/updateCondition_kulutus_tuotanto.txt")
+
+      energiantuotanto_data_frame_kulutus_tuotanto <- read_csv("./data/energiantuotanto_kulutus_tuotanto.csv")
+
+    }
+
+      energiantuotanto_data_frame_kulutus_tuotanto <- energiantuotanto_data_frame_kulutus_tuotanto[energiantuotanto_data_frame_kulutus_tuotanto$time > as.POSIXct(input$sahkoDate[1]) &
+                                                                                                     energiantuotanto_data_frame_kulutus_tuotanto$time < Sys.time(),]
+
+      energiantuotanto_data_frame_kulutus_tuotanto$time <- as.POSIXct(energiantuotanto_data_frame_kulutus_tuotanto$time, format = "%Y-%m-%d %H:%M:%S")
+
+    return(energiantuotanto_data_frame_kulutus_tuotanto)
+
+  })
 
   # valueboxit -----------------------------
 
@@ -704,6 +898,8 @@ server <- function(input, output, session) {
 
   output$muutoskulutus <- shinydashboard::renderValueBox({
 
+   #print(vuorokausi_sitten)
+
     kulutus_eilen <- vuorokausi_sitten %>% select(kulutus) %>% pull()
 
     value <- (uusin_kulutus-kulutus_eilen)/kulutus_eilen
@@ -717,6 +913,8 @@ server <- function(input, output, session) {
   })
 
   output$muutostuotanto <- shinydashboard::renderValueBox({
+
+    #print(vuorokausi_sitten)
 
     tuotanto_eilen <- vuorokausi_sitten %>% select(tuotanto) %>% pull()
     value <- (uusin_tuotanto-tuotanto_eilen)/tuotanto_eilen
@@ -886,7 +1084,23 @@ server <- function(input, output, session) {
 
   output$viikkoplot <- renderPlot({
 
-    viikko_data_fd %>%
+    #print(kokonaiskulutus_kokonaistuotanto_data_fd())
+    #data <- kokonaiskulutus_kokonaistuotanto_data_fd()
+
+    data <- kokonaiskulutus_kokonaistuotanto_data_fd()
+
+    #print(n = 200,data)
+
+    if ((difftime(Sys.time(), input$sahkoDate[1]) > weeks(4)) & ! ("Näytä kuvaaja aina tunneittain" %in% input$reaaliaikaKuvaajaAsetus)) {
+
+       data <- data %>%
+        mutate(time = lubridate::floor_date(time, unit = "days")) %>%
+        group_by(time) %>%
+        dplyr::summarise(across(c("kulutus", "tuotanto"), ~mean(.x, na.rm = TRUE)))
+
+    }
+
+    data %>%
       pivot_longer(-time) %>%
       ggplot(aes(x = time,
                  y = value,
@@ -894,7 +1108,7 @@ server <- function(input, output, session) {
                  group = name)) +
       geom_line(size = 1.5) +
       scale_y_continuous(label = tuhaterotin)+
-      scale_x_datetime(breaks = "1 day",
+      scale_x_datetime(#breaks = "1 day",
                        date_labels = "%d.%m.")+
       scale_color_manual(
         name = NULL,
@@ -907,6 +1121,61 @@ server <- function(input, output, session) {
       theme(axis.text = element_text(size = 14),
             axis.title = element_text(size = 14),
             legend.text = element_text(size= 14))
+
+  })
+
+  output$viikkoplot_dekomponoitu <- renderPlot({
+
+    energiantuotanto_data_frame <- energiantuotanto_data_frame()
+    #print(energiantuotanto_data_frame)
+
+    if ((difftime(Sys.time(), input$sahkoDate[1]) > weeks(4)) & !("Näytä kuvaaja aina tunneittain" %in% input$reaaliaikaKuvaajaAsetus)) {
+
+      #energiantuotanto_data_frame[,1] %<>% as.POSIXct()
+
+      #colnames(energiantuotanto_data_frame) <- c("time","kokonaiskulutus","pientuotanto","tehoreservi","tuulivoima",
+      #                                                  "vesivoima","ydinvoima","yhteistuotanto_kaukolämpö","yhteistuotanto_teollisuus")
+
+      #print(energiantuotanto_data_frame)
+
+      energiantuotanto_data_frame <- energiantuotanto_data_frame %>%
+        mutate(time = lubridate::floor_date(time, unit = "days")) %>%
+        group_by(time) %>%
+        dplyr::summarise(across(c("pientuotanto", "tehoreservi", "tuulivoima",
+                                  "vesivoima", "ydinvoima", "yhteistuotanto_kaukolämpö", "yhteistuotanto_teollisuus",
+                                  "kokonaiskulutus"), ~mean(.x, na.rm = TRUE)))
+
+    }
+
+    #print(energiantuotanto_data_frame)
+
+    energiantuotanto_data_frame %>%
+      pivot_longer(cols = c(pientuotanto, tuulivoima, ydinvoima, tehoreservi, vesivoima, yhteistuotanto_kaukolämpö, yhteistuotanto_teollisuus)) %>%
+      pivot_longer(cols = c(kokonaiskulutus),
+                   names_to = "kokonaiskulutus", values_to = "kokonaiskulutus_arvo") %>%
+
+      ggplot(aes(time)) +
+      geom_col(aes(y = value, fill = name)) +
+      scale_fill_manual(name = NULL,
+                         labels = c("pientuotanto", "tehoreservi", "tuulivoima",
+                                    "vesivoima", "ydinvoima", "yhteistuotanto, kaukolämpö", "yhteistuotanto, teollisuus"),
+                         values = c("#721d41", "#CC8EA0", "#FBE802", "#F16C13", "#FFF1E0", "#AED136", "#8482BD")) +
+      geom_line(aes(y = kokonaiskulutus_arvo, col = kokonaiskulutus), size = 1.25) +
+      scale_x_continuous(label = tuhaterotin) +
+      scale_x_datetime(#breaks = "1 week",
+                       date_labels = "%d.%m.") +
+      scale_color_manual(name = NULL,
+                         labels = c("kokonaiskulutus"),
+                         values = c("#393594")) +
+
+           theme_light() +
+           labs(x = NULL, y = 'MW') +
+           theme(legend.position = 'bottom') +
+           theme(axis.text = element_text(size = 14),
+                 axis.title = element_text(size = 14),
+                 legend.text = element_text(size= 14))
+
+
 
   })
 
@@ -1710,8 +1979,10 @@ server <- function(input, output, session) {
 
     ## create plot
     p <- ikajakauma %>%
+      rename("ikäryhmä" = "age_group") %>%
+      rename("lukumäärä" = "n") %>%
       ggplot() +
-      geom_col(aes(x = age_group, y =n, fill = sukupuoli), alpha = alpha_u, position = "dodge") +
+      geom_col(aes(x = ikäryhmä, y =lukumäärä, fill = sukupuoli), alpha = alpha_u, position = "dodge") +
       scale_fill_manual(values = c(light_blue, orange)) +
       scale_x_discrete(name = "ikäryhmä") +
       scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
@@ -1724,8 +1995,6 @@ server <- function(input, output, session) {
         axis.text.x = element_text(angle = 45, hjust = 1, size = font_size))
 
     ggplotly(p) %>% layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center'))
-
-
 
   })
   ## taustatietoja ---------------------------
@@ -1748,138 +2017,34 @@ server <- function(input, output, session) {
 
     if(input$jaottelu == "-") {
 
-      ## distinct
-      summary <- data %>%
-        distinct(tilasto_time, n_total)
-
-      ## plot
-      p <- summary %>%
-        rename("aika" = "tilasto_time") %>%
-        ggplot(aes(x = aika)) +
-        geom_col(aes(y = n_total), fill = orange, alpha = alpha_u) +
-        scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-        scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
-        theme_light() +
-        theme(legend.position = "bottom",
-              text = element_text(size = font_size),
-              legend.title = element_blank(),
-              panel.grid.major.x = element_blank(),
-              panel.grid.minor.x = element_blank(),
-              plot.caption = element_text(hjust = 0),
-              axis.text.x = element_text(angle = 45, hjust = 1, size = font_size))
-      ggplotly(p)
+      p <- Ukraina_kuvaaja(data, "none", FALSE, "lukumäärä", NULL, "henkilöä", alpha_u, font_size)
 
     } else if(input$jaottelu == "ikäryhmä") {
 
       if(input$vaesto == "kotikunnan saaneet") {NULL}
       else {
 
-      ## summarise
-      summary <- data %>%
-        group_by(tilasto_time, n_total, age_group) %>%
-        summarise(n = sum(n))
-
-
       if (input$osuus) {
 
-        ## plot
-        p <- summary %>%
-          mutate(n = n/n_total*100) %>%
-          rename("aika" = "tilasto_time") %>%
-          ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
-          scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-          scale_fill_manual(values = colors) +
-          scale_y_continuous(name = "prosenttia", labels = tuhaterotin) +
-          theme_light() +
-          theme(legend.position = "bottom",
-                legend.title = element_blank(),
-                text = element_text(size = font_size),
-                panel.grid.major.x = element_blank(),
-                panel.grid.minor.x = element_blank(),
-                plot.title = element_text(hjust = 0.5, size = 13),
-                plot.caption = element_text(hjust = 0),
-                axis.text.x = element_text(angle = 45, hjust = 1))
-        ggplotly(p) %>%
-          layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
+        p <- Ukraina_kuvaaja(data, "ikäryhmä", TRUE, "osuus", "ikäryhmä", "prosenttia", alpha_u, font_size)
 
       } else{
 
-        ## plot
-        p <- summary %>%
-          rename("aika" = "tilasto_time") %>%
-          ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
-          scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-          scale_fill_manual(values = colors) +
-          scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
-          theme_light() +
-          theme(legend.position = "bottom",
-                legend.title = element_blank(),
-                text = element_text(size = font_size),
-                panel.grid.major.x = element_blank(),
-                panel.grid.minor.x = element_blank(),
-                plot.title = element_text(hjust = 0.5, size = 13),
-                plot.caption = element_text(hjust = 0),
-                axis.text.x = element_text(angle = 45, hjust = 1))
-        ggplotly(p) %>%
-          layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
+        p <- Ukraina_kuvaaja(data, "ikäryhmä", FALSE, "lukumäärä", "ikäryhmä", "henkilöä", alpha_u, font_size)
+
       }
       }
 
 
     } else if (input$jaottelu == "sukupuoli"){
 
-      ## summarise
-      summary <- data %>%
-        group_by(tilasto_time, n_total, sukupuoli) %>%
-        summarise(n = sum(n))
-
-
       if (input$osuus) {
 
-        ## plot
-        p <- summary %>%
-          mutate(n = n/n_total*100) %>%
-          rename("aika" = "tilasto_time") %>%
-          ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = sukupuoli), alpha = alpha_u) +
-          scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-          scale_fill_manual(values = c(light_blue, orange)) +
-          scale_y_continuous(name = "prosenttia", labels = tuhaterotin) +
-          theme_light() +
-          theme(legend.position = "bottom",
-                legend.title = element_blank(),
-                text = element_text(size = font_size),
-                panel.grid.major.x = element_blank(),
-                panel.grid.minor.x = element_blank(),
-                plot.title = element_text(hjust = 0.5, size = 13),
-                plot.caption = element_text(hjust = 0),
-                axis.text.x = element_text(angle = 45, hjust = 1))
-        ggplotly(p) %>%
-          layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
+        p <- Ukraina_kuvaaja(data, "sukupuoli", TRUE, "osuus", "sukupuoli", "prosenttia", alpha_u, font_size)
 
       } else{
 
-        ## plot
-        p <- summary %>%
-          rename("aika" = "tilasto_time") %>%
-          ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = sukupuoli), position = "dodge", alpha = alpha_u) +
-          scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-          scale_fill_manual(values = c(light_blue, orange)) +
-          scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
-          theme_light() +
-          theme(legend.position = "bottom",
-                legend.title = element_blank(),
-                text = element_text(size = font_size),
-                panel.grid.major.x = element_blank(),
-                panel.grid.minor.x = element_blank(),
-                plot.title = element_text(hjust = 0.5, size = 13),
-                plot.caption = element_text(hjust = 0),
-                axis.text.x = element_text(angle = 45, hjust = 1))
-        ggplotly(p) %>%
-          layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
+        p <- Ukraina_kuvaaja(data, "sukupuoli", FALSE, "lukumäärä", "sukupuoli", "henkilöä", alpha_u, font_size)
       }
 
 
@@ -1914,133 +2079,38 @@ server <- function(input, output, session) {
         distinct(tilasto_time, n_total)
 
       ## plot
-      p <- summary %>%
-        rename("aika" = "tilasto_time") %>%
-        ggplot(aes(x = aika)) +
-        geom_col(aes(y = n_total), fill = orange, alpha = alpha_u) +
-        scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-        scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
-        theme_light() +
-        theme(legend.position = "bottom",
-              text = element_text(size = font_size),
-              legend.title = element_blank(),
-              panel.grid.major.x = element_blank(),
-              panel.grid.minor.x = element_blank(),
-              plot.caption = element_text(hjust = 0),
-              axis.text.x = element_text(angle = 45, hjust = 1, size = font_size))
-      ggplotly(p)
+      p <- Ukraina_kuvaaja(summary, "none", FALSE, "lukumäärä", NULL, "henkilöä", alpha_u, font_size)
 
     } else if(input$jaottelu_emp == "ikäryhmä") {
-
-      #if(input$emp == "kotikunnan saaneet") {NULL}
-      #else {
-
-        ## summarise
-        summary <- data %>%
-          group_by(tilasto_time, n_total, age_group) %>%
-          summarise(n = sum(n))
 
 
         if (input$osuus_emp) {
 
           ## plot
-          p <- summary %>%
-            mutate(n = n/n_total*100) %>%
-            rename("aika" = "tilasto_time") %>%
-            ggplot(aes(x = aika)) +
-            geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
-            scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-            scale_fill_manual(values = colors) +
-            scale_y_continuous(name = "prosenttia", labels = tuhaterotin) +
-            theme_light() +
-            theme(legend.position = "bottom",
-                  legend.title = element_blank(),
-                  text = element_text(size = font_size),
-                  panel.grid.major.x = element_blank(),
-                  panel.grid.minor.x = element_blank(),
-                  plot.title = element_text(hjust = 0.5, size = 13),
-                  plot.caption = element_text(hjust = 0),
-                  axis.text.x = element_text(angle = 45, hjust = 1))
-          ggplotly(p) %>%
-            layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
+          p <- Ukraina_kuvaaja(data, "ikäryhmä", TRUE, "osuus", "ikäryhmä", "henkilöä", alpha_u, font_size)
+
 
         } else{
 
           ## plot
-          p <- summary %>%
-            rename("aika" = "tilasto_time") %>%
-            ggplot(aes(x = aika)) +
-            geom_col(aes(y = n, fill = age_group), alpha = alpha_u) +
-            scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-            scale_fill_manual(values = colors) +
-            scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
-            theme_light() +
-            theme(legend.position = "bottom",
-                  legend.title = element_blank(),
-                  text = element_text(size = font_size),
-                  panel.grid.major.x = element_blank(),
-                  panel.grid.minor.x = element_blank(),
-                  plot.title = element_text(hjust = 0.5, size = 13),
-                  plot.caption = element_text(hjust = 0),
-                  axis.text.x = element_text(angle = 45, hjust = 1))
-          ggplotly(p) %>%
-            layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
+          p <- Ukraina_kuvaaja(data, "ikäryhmä", FALSE, "lukumäärä", "ikäryhmä", "henkilöä", alpha_u, font_size)
+
         }
-      #}
 
 
     } else if (input$jaottelu_emp == "sukupuoli"){
-
-      ## summarise
-      summary <- data %>%
-        group_by(tilasto_time, n_total, sukupuoli) %>%
-        summarise(n = sum(n))
 
 
       if (input$osuus_emp) {
 
         ## plot
-        p <- summary %>%
-          mutate(n = n/n_total*100) %>%
-          rename("aika" = "tilasto_time") %>%
-          ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = sukupuoli), alpha = alpha_u) +
-          scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-          scale_fill_manual(values = c(light_blue, orange)) +
-          scale_y_continuous(name = "prosenttia", labels = tuhaterotin) +
-          theme_light() +
-          theme(legend.position = "bottom",
-                legend.title = element_blank(),
-                text = element_text(size = font_size),
-                panel.grid.major.x = element_blank(),
-                panel.grid.minor.x = element_blank(),
-                plot.title = element_text(hjust = 0.5, size = 13),
-                plot.caption = element_text(hjust = 0),
-                axis.text.x = element_text(angle = 45, hjust = 1))
-        ggplotly(p) %>%
-          layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
+        p <- Ukraina_kuvaaja(data, "sukupuoli", TRUE, "osuus", "sukupuoli", "henkilöä", alpha_u, font_size)
 
       } else{
 
         ## plot
-        p <- summary %>%
-          rename("aika" = "tilasto_time") %>%
-          ggplot(aes(x = aika)) +
-          geom_col(aes(y = n, fill = sukupuoli), position = "dodge", alpha = alpha_u) +
-          scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-          scale_fill_manual(values = c(light_blue, orange)) +
-          scale_y_continuous(name = "henkilöä", labels = tuhaterotin) +
-          theme_light() +
-          theme(legend.position = "bottom",
-                legend.title = element_blank(),
-                text = element_text(size = font_size),
-                panel.grid.major.x = element_blank(),
-                panel.grid.minor.x = element_blank(),
-                plot.title = element_text(hjust = 0.5, size = 13),
-                plot.caption = element_text(hjust = 0),
-                axis.text.x = element_text(angle = 45, hjust = 1))
-        ggplotly(p) %>%
-          layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
+        p <- Ukraina_kuvaaja(data, "sukupuoli", FALSE, "lukumäärä", "sukupuoli", "henkilöä", alpha_u, font_size)
+
       }
 
 
@@ -2055,33 +2125,22 @@ server <- function(input, output, session) {
     if(input$alavaiammatti == "toimialat") {
 
       ## yleisimmät toimialat
-      top <- toimialat %>%
+      top <<- toimialat %>%
         group_by(toimiala) %>%
         dplyr::summarise(n = mean(n)) %>%
         arrange(desc(n)) %>% slice(1:input$top) %>%
         pull(toimiala)
-
-      ## rajaa
-      data <- toimialat %>%
-        filter(tilasto_time > ymd("2022-04-01")) %>%
-        filter(toimiala %in% top) %>%
-        mutate(ala = toimiala)
-
+      data <- toimialat
 
     } else {
 
       ## yleisimmät ammatit
-      top <- ammatit %>%
+      top <<- ammatit %>%
         group_by(prof_l3) %>%
         dplyr::summarise(n = mean(n))  %>%
         arrange(desc(n)) %>% slice(1:input$top) %>%
         pull(prof_l3)
-
-      ## rajaa
-      data <- ammatit %>%
-        filter(tilasto_time > ymd("2022-04-01")) %>%
-        filter(prof_l3 %in% top) %>%
-        mutate(ala = nimi_fi)
+      data <- ammatit
     }
 
     return(data)
@@ -2092,25 +2151,19 @@ server <- function(input, output, session) {
     ## get data
     data <-  ukraina_alat_ja_ammatit()
 
-    ## plot
-    p <- data %>%
-      rename("aika" = "tilasto_time") %>%
-      ggplot(aes(x = aika)) +
-      scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
-      geom_col(aes(y = n, fill = ala), alpha = alpha_u) +
-      scale_fill_manual(values = c(colors, "black")) +
-      scale_y_continuous(name = "henkilöä") +
-      theme_light() +
-      theme(legend.position = "bottom",
-            legend.title = element_blank(),
-            text = element_text(size = font_size),
-            panel.grid.major.x = element_blank(),
-            panel.grid.minor.x = element_blank(),
-            plot.title = element_text(hjust = 0.5, size = 13),
-            plot.caption = element_text(hjust = 0),
-            axis.text.x = element_text(angle = 45, hjust = 1))
-    ggplotly(p) %>%
-      layout(legend = list(orientation = "h", x = 0.5, y = -0.5, xanchor = 'center', title=list(text='')))
+
+
+    if (input$alavaiammatti == "toimialat") {
+
+      ## plot
+      p <- Ukraina_kuvaaja(data, "toimiala", FALSE, "lukumäärä", "ala", "henkilöä", alpha_u, font_size)
+
+    } else if (input$alavaiammatti == "ammattinimikkeet") {
+
+      ## plot
+      p <- Ukraina_kuvaaja(data, "ammatti", FALSE, "lukumäärä", "ala", "henkilöä", alpha_u, font_size)
+
+    }
 
   })
 
@@ -2119,13 +2172,13 @@ server <- function(input, output, session) {
   ## otsikot --------------------------------
   output$toimialat_otsikko <- renderText({
 
-    lkm <- input$top
+    lkm <- numerolle_teksti(input$top)
 
-    if(lkm == 1){
+    if(lkm == "Yksi"){
       if(input$alavaiammatti == "toimialat") {
-        paste0( "yleisin toimiala")
+        paste0( "Yleisin toimiala")
       } else {
-        paste0("yleisin ammattinimike")
+        paste0("Yleisin ammattinimike")
       }
     } else {
       if(input$alavaiammatti == "toimialat"){
@@ -2360,6 +2413,16 @@ server <- function(input, output, session) {
         rename_all(~str_replace_all(., "y_", "sahkonkaytto_"))
 
       write.csv(data, file, row.names = F)
+    }
+  )
+
+  output$download_dekomponoitu <- downloadHandler(
+    filename = function(){
+      paste0("datahuone_fdh_dekomponoitu_", as.character(input$sahkoDate[1]), "_", as.character(input$sahkoDate[2]), ".csv")
+    },
+    content = function(file){
+      data <- energiantuotanto_data_frame()
+      write.csv(data, file, row.names = FALSE)
     }
   )
 }

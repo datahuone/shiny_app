@@ -1,7 +1,7 @@
 .Rproj.user
 .Rhistory
+.Renviron
 .RData
 .Ruserdata
 rsconnect/
 fingrid_api.feather
-kokeilua.R
