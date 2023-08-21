@@ -64,8 +64,8 @@ ei_kotikuntaa <-  read_csv("./data/summaries/age_sex_month_nonpop.csv")
 ikajakauma <- read_csv("./data/summaries/age_gender.csv")
 toimialat <- read_csv("./data/summaries/industry.csv")
 ammatit <- read_csv("./data/summaries/occupations.csv")
-employed  <- read_csv("./data/summaries/employed_age_sex.csv")
-employed_kotikunta <- read_csv("./data/summaries/employed_age_sex_pop.csv")
+employed  <- read_csv("./data/summaries/employed_age_gender.csv")
+employed_kotikunta <- read_csv("./data/summaries/employed_age_pop.csv")
 
 ## age group to factor
 levels <- c("alle 15","15–19", "20–24", "25–54", "55–64", "yli 64")
