@@ -110,7 +110,8 @@ fingrid_sanakirja <- function(){
       "reaali pientuotanto" = 205,
       "reaali ydinvoima" = 188,
       "reaali kokonaiskulutus" = 193,
-      "reaali vienti" = 194
+      "reaali vienti" = 194#,
+      # "reaali sähköpula" = 336
       )
   )
 }
@@ -149,8 +150,10 @@ lataa_aikasarja_fingrid <- function(arvo,
 
 }
 
-lataa_viikko_fingridistä <- function(){
-  lataa_aikasarja_fingrid("reaali kokonaiskulutus") %>%
+lataa_tuotanto_ja_kulutus_fingridistä <- function(alkuTime = Sys.time()-lubridate::weeks(1),
+                                                  loppuTime = Sys.time()){
+
+  lataa_aikasarja_fingrid("reaali kokonaiskulutus", alku = loppuTime, loppu = alkuTime) %>%
     rename(kulutus = value) %>%
     left_join(
       lataa_aikasarja_fingrid("reaali kokonaistuotanto") %>%
@@ -171,6 +174,8 @@ ota_yhteys_fingrid_api <- function(url){
               query = list(`x-api-key` = api_key))
 
     result_tibble <- as_tibble(fromJSON(rawToChar(res$content)))
+
+    print(result_tibble)
 
     return(result_tibble %>%
              select(-end_time) %>%
@@ -235,8 +240,6 @@ Ukraina_kuvaaja <- function(data, jaottelu, osuus, variable, grouping, ylabtxt, 
     lookup = c("aika" = "tilasto_time", "lukumäärä"="n") #, "ala" = "nimi_fi"
   }
 
-  print(data)
-
   p <- data %>%
     rename(any_of(lookup)) %>%
     ggplot(aes(x = aika))
@@ -283,8 +286,21 @@ Ukraina_aggregaattori <- function(data, param) {
 
 }
 
-assign_energiantuotanto <- function(nimi_energialahde, startTime) {
-  assign(paste0("energiantuotanto_", gsub("reaali ", "", nimi_energialahde)), lataa_aikasarja_fingrid(nimi_energialahde, alku = as.POSIXct(startTime)) %>%
+assign_energiantuotanto <- function(nimi_energialahde, startTime, endTime) {
+  print(nimi_energialahde)
+  assign(paste0("energiantuotanto_", gsub("reaali ", "", nimi_energialahde)), lataa_aikasarja_fingrid(nimi_energialahde, alku = as.POSIXct(startTime),
+                                                                                                      loppu = as.POSIXct(endTime)) %>%
+           arrange(desc(time)) %>%
+           slice(which(row_number() %% 20 == 1)) %>%
+           mutate(time = lubridate::ymd_hms(time)) %>%
+           mutate(time = lubridate::floor_date(time, unit = "hours")))
+
+}
+
+assign_energiantuotanto_2 <- function(time, nimi_energialahde) {
+  print(nimi_energialahde)
+  assign(paste0("energiantuotanto_", gsub("reaali ", "", nimi_energialahde)), lataa_aikasarja_fingrid(nimi_energialahde, alku = as.POSIXct(time) - lubridate::weeks(5),
+                                                                                                      loppu = as.POSIXct(time)) %>%
            arrange(desc(time)) %>%
            slice(which(row_number() %% 20 == 1)) %>%
            mutate(time = lubridate::ymd_hms(time)) %>%
@@ -317,4 +333,43 @@ fetch_energialahteet <- function() {
            "reaali kokonaiskulutus"))
 }
 
+louhi_dataa_FG <- function() {
 
+  energialahteet <- fetch_energialahteet()
+  energialahteet <- c("reaali kokonaiskulutus", "reaali kokonaistuotanto")
+
+  date_vec <<- c(as.character(Sys.time()), "2023-08-01", "2023-07-01", "2023-06-01", "2023-05-01", "2023-04-01", "2023-03-01", "2023-02-01", "2023-01-01",
+                "2022-12-01", "2022-11-01" ,"2022-10-01", "2022-09-01", "2022-08-01", "2022-07-01", "2022-06-01", "2022-05-01", "2022-04-01", "2022-03-01", "2022-02-01", "2022-01-01",
+                "2021-12-01", "2021-11-01", "2021-10-01", "2021-09-01", "2021-08-01", "2021-07-01", "2021-06-01", "2021-05-01", "2021-04-01", "2021-03-01", "2021-02-01", "2021-01-01",
+                "2020-12-01", "2020-11-01", "2020-10-01", "2020-09-01", "2020-08-01", "2020-07-01", "2020-06-01", "2020-05-01", "2020-04-01", "2020-03-01", "2020-02-01", "2020-01-01"
+                )
+
+  for (i in 1:length(energialahteet)) {
+    print(energialahteet[i])
+    print(i/length(energialahteet))
+    #energiantuotanto_list <- lapply(energialahteet, assign_energiantuotanto, startTime = date_vec[i+1], endTime = date_vec[i])
+    #energiantuotanto_data_frame <- do.call(data.frame, lapply(date_vec, assign_energiantuotanto_2,
+    #                                                          nimi = energialahteet[i]))
+
+    assign(paste("energiantuotanto_data_frame", energialahteet[i], sep = "_"), do.call(rbind, lapply(date_vec, assign_energiantuotanto_2,
+                                                                                                          nimi = energialahteet[i])), .GlobalEnv)
+
+    #assign(paste("energiantuotanto_data_frame", energialahteet[i], sep = "_"),
+    #       energiantuotanto_data_frame)
+
+    filevec <<- c(filevec, paste("energiantuotanto_data_frame", date_vec[i], date_vec[i+1], sep = "_"))
+
+  }
+
+}
+
+checkUpdateCondition <- function(x) {
+  # This function updates the data specified if a week has lapsed since the last update
+
+  if (x < (Sys.Date() - lubridate::hours(3))) {
+    return(TRUE) #This should be TRUE.
+  } else {
+    return(FALSE) #This should be FALSE. Set it TRUE for testing
+  }
+
+}
