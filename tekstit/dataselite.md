@@ -8,6 +8,12 @@ Avoin data on peräisin Fingridin hallinnoimasta Avoin Data API:sta, joka tarjoa
 
 Tämä API on löydettävissä osoitteesta [https://data.fingrid.fi/fi/](https://data.fingrid.fi/fi/).
 
+### Sähkön tuotantomuodot
+
+Sähkön yhteistuotanto on tuotantomuoto, jossa sähköä tuotetaan toisen prosessin yhteydessä.
+
+Sähkön pientuotanto on paikalliseen käyttöön tarkoitettua tuotantoa, jota tuotannon ylittäessä kulutuksen voidaan myydä sähköverkkoon. Pientuotannoksi luokitellaan sellainen tuotanto, jonka nimellisteho on enintään 2 megavolttiampeeria. Yksittäiset kotitaloudet ovat tyypillisiä, mutta eivät ainoita sähkön pientuottajia. 
+
 ## Asuntokuntakohtainen sähkönkäyttö 
 
 Kotitalouksien mittarikohtainen sähkönkulutus saadaan Fingrid Datahub -aineistosta. Tiedostoissa esitetään luvut joulukuun 2022 kulutuksesta. Mittaripisteen sähkösopimus yhdistetään asuntokuntiin sähkösopimuksen haltijan pseudonymisoidun henkilönumeron avulla.
