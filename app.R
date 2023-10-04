@@ -60,24 +60,24 @@ kotikunta <-  read_csv("./data/summaries/sex_month_pop.csv")
 ei_kotikuntaa <-  read_csv("./data/summaries/age_sex_month_nonpop.csv")
 ikajakauma <- read_csv("./data/summaries/age_gender.csv")
 toimialat <- read_csv("./data/summaries/industry.csv")
-ammatit <- read_csv("./data/summaries/occupations.csv")
+ammatit <- read_csv("./data/summaries/occupation.csv")
 employed  <- read_csv("./data/summaries/employed_age_gender.csv")
 employed_kotikunta <- read_csv("./data/summaries/employed_age_pop.csv")
 
 ## age group to factor
-levels <- c("alle 15","15–19", "20–24", "25–54", "55–64", "yli 64")
+levels <- c("alle 15","15-19", "20-24", "25-54", "55-64", "yli 64")
 ei_kotikuntaa <- ei_kotikuntaa %>% mutate(age_group = factor(age_group, levels = levels))
 
 levels <- ikajakauma %>% distinct(age_group) %>% pull()
 ikajakauma <- ikajakauma %>% mutate(age_group = factor(age_group, levels = levels))
 
 ## industry to factor
-levels <- toimialat %>% distinct(toimiala) %>% pull()
-toimialat <- toimialat %>% mutate(toimiala = factor(toimiala, levels = levels))
+levels <- toimialat %>% distinct(toimiala_nimi) %>% pull()
+toimialat <- toimialat %>% mutate(toimiala = factor(toimiala_nimi, levels = levels))
 
 ## profession to factor
-levels <- ammatit %>% distinct(nimi_fi) %>% pull()
-ammatit <- ammatit %>% mutate(nimi_fi = factor(nimi_fi, levels = levels))
+levels <- ammatit %>% distinct(t3_nimi) %>% pull()
+ammatit <- ammatit %>% mutate(nimi_fi = factor(t3_nimi, levels = levels))
 
 #testi miten orgasnisaatiot toimii
 
@@ -1755,11 +1755,10 @@ server <- function(input, output, session) {
 
       ## distinct
       summary <- data %>%
-        distinct(tilasto_time, n_total)
+        distinct(aika, n_total)
 
       ## plot
       p <- summary %>%
-        rename("aika" = "tilasto_time") %>%
         rename("lukumäärä" = "n_total") %>%
         ggplot(aes(x = aika)) +
         geom_col(aes(y = lukumäärä), fill = orange, alpha = alpha_u) +
@@ -1782,7 +1781,7 @@ server <- function(input, output, session) {
 
       ## summarise
       summary <- data %>%
-        group_by(tilasto_time, n_total, age_group) %>%
+        group_by(aika, n_total, age_group) %>%
         summarise(n = sum(n))
 
 
@@ -1791,7 +1790,6 @@ server <- function(input, output, session) {
         ## plot
         p <- summary %>%
           mutate(n = n/n_total*100) %>%
-          rename("aika" = "tilasto_time") %>%
           rename("osuus" = "n") %>%
           rename("ikäryhmä" = "age_group") %>%
           ggplot(aes(x = aika)) +
@@ -1815,7 +1813,6 @@ server <- function(input, output, session) {
 
         ## plot
         p <- summary %>%
-          rename("aika" = "tilasto_time") %>%
           rename("lukumäärä" = "n") %>%
           rename("ikäryhmä" = "age_group") %>%
           ggplot(aes(x = aika)) +
@@ -1842,7 +1839,7 @@ server <- function(input, output, session) {
 
       ## summarise
       summary <- data %>%
-        group_by(tilasto_time, n_total, sukupuoli) %>%
+        group_by(aika, n_total, sukupuoli) %>%
         summarise(n = sum(n))
 
 
@@ -1851,7 +1848,6 @@ server <- function(input, output, session) {
         ## plot
         p <- summary %>%
           mutate(n = n/n_total*100) %>%
-          rename("aika" = "tilasto_time") %>%
           rename("osuus" = "n") %>%
           ggplot(aes(x = aika)) +
           geom_col(aes(y = osuus, fill = sukupuoli), alpha = alpha_u) +
@@ -1874,7 +1870,6 @@ server <- function(input, output, session) {
 
         ## plot
         p <- summary %>%
-          rename("aika" = "tilasto_time") %>%
           rename("lukumäärä" = "n") %>%
           ggplot(aes(x = aika)) +
           geom_col(aes(y = lukumäärä, fill = sukupuoli), position = "dodge", alpha = alpha_u) +
@@ -1904,11 +1899,11 @@ server <- function(input, output, session) {
     ## filter
     if(input$employed == "kotikunnan saaneet") {
       data <- employed_kotikunta %>%
-        filter(tilasto_time > dmy("01/04/2022")) %>%
-        mutate(n = if_else(tilasto_time < dmy("01/03/2023"), 0, n))
+        filter(aika > dmy("01/04/2022")) %>%
+        mutate(n = if_else(aika < dmy("01/03/2023"), 0, n))
 
     } else {
-      data <- employed %>% filter(tilasto_time > dmy("01/04/2022"))
+      data <- employed %>% filter(aika > dmy("01/04/2022"))
     }
 
     return(data)
@@ -1923,11 +1918,10 @@ server <- function(input, output, session) {
 
       ## distinct
       summary <- data %>%
-        distinct(tilasto_time, n_total)
+        distinct(aika, n_total)
 
       ## plot
       p <- summary %>%
-        rename("aika" = "tilasto_time") %>%
         rename("lukumäärä" = "n_total") %>% #Akseli lisännyt 4.7.2023
         ggplot(aes(x = aika)) +
         geom_col(aes(y = lukumäärä), fill = orange, alpha = alpha_u) +
@@ -1950,7 +1944,7 @@ server <- function(input, output, session) {
 
         ## summarise
         summary <- data %>%
-          group_by(tilasto_time, n_total, age_group) %>%
+          group_by(aika, n_total, age_group) %>%
           summarise(n = sum(n))
 
 
@@ -1959,7 +1953,6 @@ server <- function(input, output, session) {
           ## plot
           p <- summary %>%
             mutate(n = n/n_total*100) %>%
-            rename("aika" = "tilasto_time") %>%
             rename("osuus" = "n") %>% #Akseli lisännyt 4.7.2023
             rename("ikäryhmä"  = "age_group") %>% #Akseli lisännyt 4.7.2023
             ggplot(aes(x = aika)) +
@@ -1983,7 +1976,6 @@ server <- function(input, output, session) {
 
           ## plot
           p <- summary %>%
-            rename("aika" = "tilasto_time") %>%
             rename("lukumäärä" = "n") %>% #Akseli lisännyt 4.7.2023
             rename("ikäryhmä"  = "age_group") %>% #Akseli lisännyt 4.7.2023
             ggplot(aes(x = aika)) +
@@ -2010,7 +2002,7 @@ server <- function(input, output, session) {
 
       ## summarise
       summary <- data %>%
-        group_by(tilasto_time, n_total, sukupuoli) %>%
+        group_by(aika, n_total, sukupuoli) %>%
         summarise(n = sum(n))
 
 
@@ -2018,8 +2010,8 @@ server <- function(input, output, session) {
 
         ## plot
         p <- summary %>%
+          ungroup() %>%
           mutate(n = n/n_total*100) %>%
-          rename("aika" = "tilasto_time") %>%
           rename("osuus" = "n") %>% #Akseli lisännyt 4.7.2023
           ggplot(aes(x = aika)) +
           geom_col(aes(y = osuus, fill = sukupuoli), alpha = alpha_u) +
@@ -2042,7 +2034,6 @@ server <- function(input, output, session) {
 
         ## plot
         p <- summary %>%
-          rename("aika" = "tilasto_time") %>%
           rename("lukumäärä" = "n") %>% #Akseli lisännyt 4.7.2023
           ggplot(aes(x = aika)) +
           geom_col(aes(y = lukumäärä, fill = sukupuoli), position = "dodge", alpha = alpha_u) +
@@ -2082,7 +2073,7 @@ server <- function(input, output, session) {
 
       ## rajaa
       data <- toimialat %>%
-        filter(tilasto_time > ymd("2022-04-01")) %>%
+        filter(aika > ymd("2022-04-01")) %>%
         filter(toimiala %in% top) %>%
         mutate(ala = toimiala)
 
@@ -2091,15 +2082,15 @@ server <- function(input, output, session) {
 
       ## yleisimmät ammatit
       top <- ammatit %>%
-        group_by(prof_l3) %>%
+        group_by(nimi_fi) %>%
         dplyr::summarise(n = mean(n))  %>%
         arrange(desc(n)) %>% slice(1:input$top) %>%
-        pull(prof_l3)
+        pull(nimi_fi)
 
       ## rajaa
       data <- ammatit %>%
-        filter(tilasto_time > ymd("2022-04-01")) %>%
-        filter(prof_l3 %in% top) %>%
+        filter(aika > ymd("2022-04-01")) %>%
+        filter(nimi_fi %in% top) %>%
         mutate(ala = nimi_fi)
     }
 
@@ -2113,7 +2104,6 @@ server <- function(input, output, session) {
 
     ## plot
     p <- data %>%
-      rename("aika" = "tilasto_time") %>%
       rename("lukumäärä" = "n") %>%
       ggplot(aes(x = aika)) +
       scale_x_date(name = "", date_breaks = "1 month", date_labels = "%m/%Y") +
@@ -2217,28 +2207,27 @@ server <- function(input, output, session) {
 
         ## distinct
         summary <- data %>%
-          distinct(tilasto_time, n_total) %>%
-          rename(c("aika" = "tilasto_time", "n" = "n_total"))
+          distinct(aika, n_total) %>%
+          rename(c("n" = "n_total"))
 
       } else if(input$jaottelu == "ikäryhmä") {
 
         ## summarise
         summary <- data %>%
-          group_by(tilasto_time, n_total, age_group) %>%
+          group_by(aika, n_total, age_group) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
           mutate(osuus = round(osuus, 2)) %>%
-          rename(c("aika" = "tilasto_time", "ikäryhmä" = "age_group"))
+          rename(c("ikäryhmä" = "age_group"))
 
       } else if (input$jaottelu == "sukupuoli"){
 
         ## summarise
         summary <- data %>%
-          group_by(tilasto_time, n_total, sukupuoli) %>%
+          group_by(aika, n_total, sukupuoli) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
-          mutate(osuus = round(osuus, 2)) %>%
-          rename(c("aika" = "tilasto_time"))
+          mutate(osuus = round(osuus, 2))
 
       }
 
@@ -2266,38 +2255,37 @@ server <- function(input, output, session) {
 
         ## distinct
         summary <- data %>%
-          distinct(tilasto_time, n_total) %>%
-          rename(c("aika" = "tilasto_time", "n" = "n_total"))
+          distinct(aika, n_total) %>%
+          rename(c("n" = "n_total"))
 
       } else if(input$jaottelu_emp == "ikäryhmä") {
 
         if(input$employed == "kotikunnan saaneet") {
           data <- data %>%
-            filter(tilasto_time >  dmy("01/02/2023"))
+            filter(aika >  dmy("01/02/2023"))
         }
 
         ## summarise
         summary <- data %>%
-          group_by(tilasto_time, n_total, age_group) %>%
+          group_by(aika, n_total, age_group) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
           mutate(osuus = round(osuus, 2)) %>%
-          rename(c("aika" = "tilasto_time", "ikäryhmä" = "age_group"))
+          rename(c( "ikäryhmä" = "age_group"))
 
       } else if (input$jaottelu_emp == "sukupuoli"){
 
         if(input$employed == "kotikunnan saaneet") {
           data <- data %>%
-            filter(tilasto_time >  dmy("01/02/2023"))
+            filter(aika >  dmy("01/02/2023"))
         }
 
         ## summarise
         summary <- data %>%
-          group_by(tilasto_time, n_total, sukupuoli) %>%
+          group_by(aika, n_total, sukupuoli) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
-          mutate(osuus = round(osuus, 2)) %>%
-          rename(c("aika" = "tilasto_time"))
+          mutate(osuus = round(osuus, 2))
 
       }
 
@@ -2324,7 +2312,7 @@ server <- function(input, output, session) {
 
       ## rename variables
       data <- data %>% select(-ala) %>%
-        rename(any_of(c("aika" = "tilasto_time", "ammattikoodi" = "prof_l3")))
+        rename(any_of(c( "ammattikoodi" = "prof_l3")))
 
       write.csv(data, file, row.names = F, fileEncoding = "ISO-8859-1")
     }
