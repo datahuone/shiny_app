@@ -60,7 +60,7 @@ kotikunta <-  read_csv("./data/summaries/sex_month_pop.csv")
 ei_kotikuntaa <-  read_csv("./data/summaries/age_sex_month_nonpop.csv")
 ikajakauma <- read_csv("./data/summaries/age_gender.csv")
 toimialat <- read_csv("./data/summaries/industry.csv")
-ammatit <- read_csv("./data/summaries/occupation.csv")
+ammatit <- read_csv("./data/summaries/occupations.csv")
 employed  <- read_csv("./data/summaries/employed_age_gender.csv")
 employed_kotikunta <- read_csv("./data/summaries/employed_age_pop.csv")
 
