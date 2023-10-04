@@ -358,7 +358,7 @@ ui <- navbarPage(
        sidebarLayout(
          sidebarPanel(
            dateRangeInput(
-             "sahkoDate", "Valitse Aikaväli:",
+             "sahkoDate", "Valitse aikaväli:",
              start = Sys.time()-lubridate::weeks(1),
              end = Sys.time(),
              min = lubridate::as_datetime("27-11-2019", format = "%d-%m-%Y"),
@@ -366,8 +366,8 @@ ui <- navbarPage(
              separator = "-"
            ),
 
-           checkboxGroupInput("reaaliaikaKuvaajaAsetus", "Muokkaa esitysmuotoa",
-                              c("Näytä kuvaaja aina tunneittain"), selected = NA),
+           checkboxGroupInput("reaaliaikaKuvaajaAsetus", "",
+                              c("Lukitse kuvaaja tuntitasolle"), selected = NA),
 
            p("Voit muokata esitysmuotoa yllä olevilla asetuksilla. Kuvaajan oletusasetus on muuttaa tarkasteluaikaväli päiviin, kun valittu aikaväli on pidempi kuin kuukausi.
              Tätä asetusta voi muuttaa, mutta kuvaaja saattaa tällöin latautua hitaasti. Ladattavaan dataan vaikuttaa ainoastaan valittu aikaväli."),
@@ -389,7 +389,7 @@ ui <- navbarPage(
              valueBoxOutput("muutostuotanto", width = 4),
              valueBoxOutput("nettovienti", width = 4)
            ),
-           fluidRow(h2("Sähkön kulutus sekä tuotanto viimeisen viikon aikana")),
+           fluidRow(h2("Sähkön kulutus sekä tuotanto Suomessa")),
            fluidRow(
              column(plotlyOutput("viikkoplot"), width = 10)
            ),
@@ -837,10 +837,8 @@ server <- function(input, output, session) {
 
       }
 
-
-
       energiantuotanto_data_frame_decomp <- energiantuotanto_data_frame_decomp[as.POSIXct(energiantuotanto_data_frame_decomp$time) > as.POSIXct(input$sahkoDate[1]) &
-                                                                                 as.POSIXct(energiantuotanto_data_frame_decomp$time) < Sys.time(),]
+                                                                                 as.POSIXct(energiantuotanto_data_frame_decomp$time) < as.POSIXct(input$sahkoDate[2]),]
 
       energiantuotanto_data_frame_decomp$time <- as.POSIXct(energiantuotanto_data_frame_decomp$time, format = "%Y-%m-%d %H:%M:%S")
 
@@ -939,7 +937,7 @@ server <- function(input, output, session) {
     }
 
       energiantuotanto_data_frame_kulutus_tuotanto <- energiantuotanto_data_frame_kulutus_tuotanto[energiantuotanto_data_frame_kulutus_tuotanto$time > as.POSIXct(input$sahkoDate[1]) &
-                                                                                                     energiantuotanto_data_frame_kulutus_tuotanto$time < Sys.time(),]
+                                                                                                     energiantuotanto_data_frame_kulutus_tuotanto$time < as.POSIXct(input$sahkoDate[2]),]
 
       energiantuotanto_data_frame_kulutus_tuotanto$time <- as.POSIXct(energiantuotanto_data_frame_kulutus_tuotanto$time, format = "%Y-%m-%d %H:%M:%S")
 
@@ -948,6 +946,8 @@ server <- function(input, output, session) {
   })
 
   viimeisin <- reactive({
+
+    print(input$sahkoDate)
 
     fd_viimeisin <- energiantuotanto_data_frame()[nrow(energiantuotanto_data_frame()),] %>%
       mutate(across(!time, as.numeric)) %>%
@@ -1199,12 +1199,12 @@ server <- function(input, output, session) {
 
     #print(n = 200,data)
 
-    if ((difftime(Sys.time(), input$sahkoDate[1]) > weeks(4)) & ! ("Näytä kuvaaja aina tunneittain" %in% input$reaaliaikaKuvaajaAsetus)) {
+    if ((difftime(Sys.time(), input$sahkoDate[1]) > weeks(4)) & ! ("Lukitse kuvaaja tuntitasolle" %in% input$reaaliaikaKuvaajaAsetus)) {
 
        data <- data %>%
         mutate(aika = lubridate::floor_date(time, unit = "days")) %>%
         group_by(aika) %>%
-        dplyr::summarise(across(c("kulutus", "tuotanto"), ~mean(.x, na.rm = TRUE)))
+        dplyr::summarise(across(c("kokonaiskulutus", "kokonaistuotanto"), ~mean(.x, na.rm = TRUE)))
 
     } else {
       colnames(data) <- gsub("time", "aika", colnames(data))
@@ -1246,7 +1246,7 @@ server <- function(input, output, session) {
       select(-c(vienti, kokonaistuotanto))
     #print(energiantuotanto_data_frame)
 
-    if ((difftime(Sys.time(), input$sahkoDate[1]) > weeks(4)) & !("Näytä kuvaaja aina tunneittain" %in% input$reaaliaikaKuvaajaAsetus)) {
+    if ((difftime(Sys.time(), input$sahkoDate[1]) > weeks(4)) & !("Lukitse kuvaaja tuntitasolle" %in% input$reaaliaikaKuvaajaAsetus)) {
 
       #energiantuotanto_data_frame[,1] %<>% as.POSIXct()
 
