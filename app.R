@@ -2151,7 +2151,7 @@ server <- function(input, output, session) {
 
       if (input$osuus) {
 
-        p <- Ukraina_kuvaaja(data, "ikäryhmä", TRUE, "osuus", "ikäryhmä", "prosenttia", alpha_u, font_size)
+        p <- Ukraina_kuvaaja(data, "ikäryhmä", TRUE, "prosenttia", "ikäryhmä", "prosenttia", alpha_u, font_size)
 
       } else{
 
@@ -2165,7 +2165,7 @@ server <- function(input, output, session) {
 
       if (input$osuus) {
 
-        p <- Ukraina_kuvaaja(data, "sukupuoli", TRUE, "osuus", "sukupuoli", "prosenttia", alpha_u, font_size)
+        p <- Ukraina_kuvaaja(data, "sukupuoli", TRUE, "prosenttia", "sukupuoli", "prosenttia", alpha_u, font_size)
 
       } else{
 
@@ -2212,7 +2212,7 @@ server <- function(input, output, session) {
         if (input$osuus_emp) {
 
           ## plot
-          p <- Ukraina_kuvaaja(data, "ikäryhmä", TRUE, "osuus", "ikäryhmä", "henkilöä", alpha_u, font_size)
+          p <- Ukraina_kuvaaja(data, "ikäryhmä", TRUE, "prosenttia", "ikäryhmä", "prosenttia", alpha_u, font_size)
 
 
         } else{
@@ -2229,7 +2229,7 @@ server <- function(input, output, session) {
       if (input$osuus_emp) {
 
         ## plot
-        p <- Ukraina_kuvaaja(data, "sukupuoli", TRUE, "osuus", "sukupuoli", "henkilöä", alpha_u, font_size)
+        p <- Ukraina_kuvaaja(data, "sukupuoli", TRUE, "prosenttia", "sukupuoli", "prosenttia", alpha_u, font_size)
 
       } else{
 

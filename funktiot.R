@@ -219,7 +219,7 @@ Ukraina_kuvaaja <- function(data, jaottelu, osuus, variable, grouping, ylabtxt, 
 
   if (osuus) {
 
-    data$n <- (data$n/data$n_total)*100
+    data$n <- round((data$n/data$n_total)*100, digits = 1)
 
   }
 
@@ -233,10 +233,10 @@ Ukraina_kuvaaja <- function(data, jaottelu, osuus, variable, grouping, ylabtxt, 
     col_pos <- "dodge"
     Ukraina_colours <- c(colors[4], colors[8])
   } else if (grouping == "ikäryhmä" & osuus == TRUE) {
-    lookup = c("osuus"="n", "ikäryhmä"="age_group")
+    lookup = c("prosenttia"="n", "ikäryhmä"="age_group")
   } else if (grouping == "sukupuoli" & osuus == TRUE) {
-    lookup = c( "osuus"="n")
-    col_pos <- "dodge"
+    lookup = c( "prosenttia"="n")
+    #col_pos <- "dodge"
     Ukraina_colours <- c(colors[4], colors[8])
   } else if (grouping == "ala" & osuus == FALSE & jaottelu != "ammatti") {
     lookup = c( "lukumäärä"="n") #, "ala" = "toimiala"
