@@ -17,9 +17,8 @@ Tässä tarkastelussa henkilö määritellään kuuluvan tilapäisen suojelun pi
 
 - Ukrainan kansalainen
 - saapunut Suomeen 1.3.2022 jälkeen 
-- hänellä ei ole kotikuntaa Suomessa
 
-Henkilö määritellään kotikunnan saaneeksi, jos hän on ensin saanut tilapäistä suojelua, ja hänelle on sen jälkeen myönnetty kotikunta. 
+Valikkojen avulla voi myös erikseen tarkastella tilapäistä suojelua saavia ukrainalaisia, jotka ovat saaneet kotikunnan.
 
 Emme pysty havaitsemaan mahdollista maastapoistumista, joten tässä tarkastelussa esitetyt luvut tilapäisen suojelun piirissä olevista ukrainalaisista saattavat yliarvioida maassa todelisuudessa olevien määrää.
 
