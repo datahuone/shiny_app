@@ -224,24 +224,24 @@ Ukraina_kuvaaja <- function(data, jaottelu, osuus, variable, grouping, ylabtxt, 
   }
 
   if (jaottelu == "none") {
-    lookup = c("aika"="tilasto_time", "lukumäärä"="n_total")
+    lookup = c("lukumäärä"="n_total")
     Ukraina_colours <- colors[8]
   } else if (grouping == "ikäryhmä" & osuus == FALSE) {
-    lookup = c("aika"="tilasto_time", "lukumäärä"="n", "ikäryhmä"="age_group")
+    lookup = c("lukumäärä"="n", "ikäryhmä"="age_group")
   } else if (grouping == "sukupuoli" & osuus == FALSE) {
-    lookup = c("aika"="tilasto_time", "lukumäärä"="n")
+    lookup = c("lukumäärä"="n")
     col_pos <- "dodge"
     Ukraina_colours <- c(colors[4], colors[8])
   } else if (grouping == "ikäryhmä" & osuus == TRUE) {
-    lookup = c("aika"="tilasto_time", "osuus"="n", "ikäryhmä"="age_group")
+    lookup = c("osuus"="n", "ikäryhmä"="age_group")
   } else if (grouping == "sukupuoli" & osuus == TRUE) {
-    lookup = c("aika"="tilasto_time", "osuus"="n")
+    lookup = c( "osuus"="n")
     col_pos <- "dodge"
     Ukraina_colours <- c(colors[4], colors[8])
   } else if (grouping == "ala" & osuus == FALSE & jaottelu != "ammatti") {
-    lookup = c("aika" = "tilasto_time", "lukumäärä"="n") #, "ala" = "toimiala"
+    lookup = c( "lukumäärä"="n") #, "ala" = "toimiala"
   } else if (jaottelu == "ammatti" & osuus == FALSE) {
-    lookup = c("aika" = "tilasto_time", "lukumäärä"="n") #, "ala" = "nimi_fi"
+    lookup = c("lukumäärä"="n") #, "ala" = "nimi_fi"
   }
 
   p <- data %>%
@@ -271,21 +271,21 @@ Ukraina_kuvaaja <- function(data, jaottelu, osuus, variable, grouping, ylabtxt, 
 Ukraina_aggregaattori <- function(data, param) {
 
   switch(param,
-         none = distinct(data, tilasto_time, n_total),
+         none = distinct(data, aika, n_total),
          ikäryhmä = data %>%
-           group_by(tilasto_time, n_total, age_group) %>%
+           group_by(aika, n_total, age_group) %>%
            summarise(n = sum(n)),
          sukupuoli = data %>%
-           group_by(tilasto_time, n_total, sukupuoli) %>%
+           group_by(aika, n_total, sukupuoli) %>%
            summarise(n = sum(n)),
          toimiala = data %>%
-           filter(tilasto_time > ymd("2022-04-01")) %>%
-           filter(toimiala %in% top) %>%
-           mutate(ala = toimiala),
+           filter(aika > ymd("2022-04-01")) %>%
+           filter(toimiala_nimi %in% top) %>%
+           mutate(ala = toimiala_nimi ),
          ammatti = data %>%
-           filter(tilasto_time > ymd("2022-04-01")) %>%
-           filter(prof_l3 %in% top) %>%
-           mutate(ala = nimi_fi)
+           filter(aika > ymd("2022-04-01")) %>%
+           filter(t3_nimi %in% top) %>%
+           mutate(ala = t3_nimi)
         )
 
 }
