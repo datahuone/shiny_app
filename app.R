@@ -68,19 +68,19 @@ employed  <- read_csv("./data/summaries/employed_age_gender.csv")
 employed_kotikunta <- read_csv("./data/summaries/employed_age_pop.csv")
 
 ## age group to factor
-levels <- c("alle 15","15–19", "20–24", "25–54", "55–64", "yli 64")
+levels <- c("alle 15","15-19", "20-24", "25-54", "55-64", "yli 64")
 ei_kotikuntaa <- ei_kotikuntaa %>% mutate(age_group = factor(age_group, levels = levels))
 
 levels <- ikajakauma %>% distinct(age_group) %>% pull()
 ikajakauma <- ikajakauma %>% mutate(age_group = factor(age_group, levels = levels))
 
 ## industry to factor
-levels <- toimialat %>% distinct(toimiala) %>% pull()
-toimialat <- toimialat %>% mutate(toimiala = factor(toimiala, levels = levels))
+levels <- toimialat %>% distinct(toimiala_nimi) %>% pull()
+toimialat <- toimialat %>% mutate(toimiala_nimi = factor(toimiala_nimi, levels = levels))
 
 ## profession to factor
-levels <- ammatit %>% distinct(nimi_fi) %>% pull()
-ammatit <- ammatit %>% mutate(nimi_fi = factor(nimi_fi, levels = levels))
+levels <- ammatit %>% distinct(t3_nimi) %>% pull()
+ammatit <- ammatit %>% mutate(t3_nimi = factor(t3_nimi, levels = levels))
 
 #testi miten orgasnisaatiot toimii
 
@@ -358,15 +358,16 @@ ui <- navbarPage(
        sidebarLayout(
          sidebarPanel(
            dateRangeInput(
-             "sahkoDate", "Valitse Aikaväli:",
+             "sahkoDate", "Valitse aikaväli:",
              start = Sys.time()-lubridate::weeks(1),
              end = Sys.time(),
              min = lubridate::as_datetime("27-11-2019", format = "%d-%m-%Y"),
-             max = Sys.time()
+             max = Sys.time(),
+             separator = "-"
            ),
 
-           checkboxGroupInput("reaaliaikaKuvaajaAsetus", "Muokkaa esitysmuotoa",
-                              c("Näytä kuvaaja aina tunneittain"), selected = NA),
+           checkboxGroupInput("reaaliaikaKuvaajaAsetus", "",
+                              c("Lukitse kuvaaja tuntitasolle"), selected = NA),
 
            p("Voit muokata esitysmuotoa yllä olevilla asetuksilla. Kuvaajan oletusasetus on muuttaa tarkasteluaikaväli päiviin, kun valittu aikaväli on pidempi kuin kuukausi.
              Tätä asetusta voi muuttaa, mutta kuvaaja saattaa tällöin latautua hitaasti. Ladattavaan dataan vaikuttaa ainoastaan valittu aikaväli."),
@@ -388,12 +389,12 @@ ui <- navbarPage(
              valueBoxOutput("muutostuotanto", width = 4),
              valueBoxOutput("nettovienti", width = 4)
            ),
-           fluidRow(h2("Sähkön kulutus sekä tuotanto viimeisen viikon aikana")),
+           fluidRow(h2("Sähkön kulutus sekä tuotanto Suomessa")),
            fluidRow(
-             column(plotOutput("viikkoplot"), width = 10)
+             column(plotlyOutput("viikkoplot"), width = 10)
            ),
            fluidRow(
-             column(plotOutput("viikkoplot_dekomponoitu"), width = 10)
+             column(plotlyOutput("viikkoplot_dekomponoitu"), width = 10)
            ),
            fluidRow(
              column(
@@ -403,11 +404,6 @@ ui <- navbarPage(
 
            fluidRow(
              downloadButton("download_dekomponoitu", "Lataa csv")
-           ),
-
-           fluidRow(
-             column(12, splitLayout(cellWidths = c("50%", "50%"), includeMarkdown("tekstit/yhteistuotanto.md"),
-                                    includeMarkdown("tekstit/pientuotanto.md")))
            )
          )
 
@@ -564,51 +560,41 @@ server <- function(input, output, session) {
 
   observeEvent(input$navbarID, {
     #hakee fingridin viikkodatan vain jos on sahkonkulutus/reaaliaikainen välilehdellä'
-    if(input$navbarID == sahk_etusivu_url){
+    if(input$navbarID %in% c(sahk_etusivu_url, sah_reaaliaikainen_url)){ #sahk_etusivu_url,
 
-      vuorokausi_sitten <<- kokonaiskulutus_kokonaistuotanto_data_fd() %>%
-        filter(time == lubridate::floor_date(
-          Sys.time()-lubridate::days(1),
-          unit = "hours"))
+      vuorokausi_sitten <<- eilen()
 
-      kokonaiskulutus_kokonaistuotanto_data_fd_tuuli <<- lataa_aikasarja_fingrid("reaali tuulivoima") %>%
-        arrange(desc(time)) %>%
-        slice(which(row_number() %% 20 == 1)) %>%
-        mutate(time = lubridate::ymd_hms(time)) %>%
-        mutate(time = lubridate::floor_date(time, unit = "hours"))
+      #vuorokausi_sitten <<- kokonaiskulutus_kokonaistuotanto_data_fd() %>%
+      #  filter(time == lubridate::floor_date(
+      #    Sys.time()-lubridate::days(1),
+      #    unit = "hours"))
+
+      #kokonaiskulutus_kokonaistuotanto_data_fd_tuuli <<- lataa_aikasarja_fingrid("reaali tuulivoima") %>%
+      #  arrange(desc(time)) %>%
+      #  slice(which(row_number() %% 20 == 1)) %>%
+      #  mutate(time = lubridate::ymd_hms(time)) %>%
+      #  mutate(time = lubridate::floor_date(time, unit = "hours"))
 
     }
   })
 
   observeEvent(input$navbarID, {
-    #hakee fingridin reaaliaikaisen datan vain jos on sahkonkulutus/reaaliaikainen tai sahkonkulutus välilehdillä'
-    if(input$navbarID %in% c(sahk_etusivu_url, sah_reaaliaikainen_url)){
-      uusin_kulutus <<- lataa_viimeisin_fingrid("reaali kokonaiskulutus")
-      uusin_tuotanto <<- lataa_viimeisin_fingrid("reaali kokonaistuotanto")
-      uusin_tuuli <<- lataa_viimeisin_fingrid("reaali tuulivoima")
-      uusin_vienti <<- lataa_viimeisin_fingrid("reaali vienti")
+    #hakee fingridin reaaliaikaisen datan vain jos on sahkonkulutus/reaaliaikainen-välilehdillä'
+    if(input$navbarID %in% c(sahk_etusivu_url, sah_reaaliaikainen_url)){ #
+
+      viimeisin_fingrid <- viimeisin()
+      print(viimeisin_fingrid)
+
+      uusin_kulutus <<- viimeisin_fingrid$value[viimeisin_fingrid$name == "reaali kokonaiskulutus"]
+      uusin_tuotanto <<- viimeisin_fingrid$value[viimeisin_fingrid$name == "reaali kokonaistuotanto"]
+      uusin_tuuli <<- viimeisin_fingrid$value[viimeisin_fingrid$name == "reaali tuulivoima"]
+      uusin_vienti <<- viimeisin_fingrid$value[viimeisin_fingrid$name == "reaali vienti"]
+
+      #uusin_tuotanto <<- lataa_viimeisin_fingrid("reaali kokonaistuotanto")
+      #uusin_tuuli <<- lataa_viimeisin_fingrid("reaali tuulivoima")
+      #uusin_vienti <<- lataa_viimeisin_fingrid("reaali vienti")
     }
   })
-
-  #observeEvent(input$navbarID, {
-    #Hakee FG:n reaaliaikaisen eritellyn sähköntuotantodatan vain jos Reaaliaikainen sähkönkäyttötilanne -välilehdellä
-  #  if (input$navbarID == sahk_etusivu_url) {
-
-  #    energialahteet <<- fetch_energialahteet()
-
-      #assign_energiantuotanto() on funktio, joka määrittelee uuden muuttujan (energiatuotanto_tuulivoima jne.) ja hakee sille arvon FG:n apista
-  #    energiantuotanto_data_frame <<- do.call(data.frame, lapply(energialahteet, assign_energiantuotanto))
-
-  #    energiantuotanto_data_frame <<- energiantuotanto_data_frame %>%
-  #      select(c(2, 1, 3:ncol(energiantuotanto_data_frame))) %>% #siirrä aikasarake df:n vasempaan reunaan
-  #      select(-grep("time.", colnames(energiantuotanto_data_frame))) %>% #Poista redundantit aikasarakkeet
-  #      set_colnames(c("time", gsub(" ", "_", gsub("reaali ", "", energialahteet)))) %>%
-  #      mutate(yhteistuotanto = yhteistuotanto_kaukolämpö + yhteistuotanto_teollisuus,
-  #             yhteistuotanto_kaukolämpö = NULL, yhteistuotanto_teollisuus = NULL)
-
-  #  }
-
-  #})
 
   # Ikonit etusivulla -------------------------------------------------------
 
@@ -632,12 +618,21 @@ server <- function(input, output, session) {
     #hakee fingridin viikkodatan vain jos on sahkonkulutus/reaaliaikainen välilehdellä'
     if(input$navbarID  %in% c(sahk_etusivu_url, sah_reaaliaikainen_url)){
 
+      print("Loading data")
+
+      #lataa_data_cluster <- parallel::makeCluster(parallel::detectCores() - 1)
+      #parallel::clusterExport(lataa_data_cluster, kuukaudet)
+
       boxplotit_sopimukset   <<- lataa_data("asuntokunnittain_sopimustenlkm_boxplotit",kuukaudet)
       boxplotit_maaraik     <<- lataa_data("asuntokunnittain_maaraaik_boxplotit", kuukaudet)
       boxplotit_lammitys    <<- lataa_data("asuntokunnittain_lammitysmuoto_boxplotit", kuukaudet)
       boxplotit_taajama <<- lataa_data("asuntokunnittain_taajama_boxplotit", kuukaudet)
       boxplotit_kerrostalo <<- lataa_data("asuntokunnittain_kerrostalo_boxplotit", kuukaudet)
       boxplotit_askoko <<- lataa_data("asuntokunnittain_askoko_boxplotit", kuukaudet)
+
+      #stopCluster(lataa_data_cluster)
+
+      print("Loaded")
 
       boxplotlista <<- list(
         "-" = boxplotit_asuntokunnat,
@@ -752,20 +747,26 @@ server <- function(input, output, session) {
 
     energialahteet <- fetch_energialahteet()
 
-      energiantuotanto_data_frame_decomp <- read.csv("./data/energiantuotanto_dekomponoitu.csv")
+      energiantuotanto_data_frame_decomp <- data.table::fread("./data/energiantuotanto_dekomponoitu.csv")
+
+      print(energiantuotanto_data_frame_decomp)
 
       colnames(energiantuotanto_data_frame_decomp) <- c("time","kokonaiskulutus","pientuotanto","tehoreservi","tuulivoima",
-                                                        "vesivoima","ydinvoima","yhteistuotanto_kaukolämpö","yhteistuotanto_teollisuus")
+                                                        "vesivoima","ydinvoima","yhteistuotanto_kaukolämpö","yhteistuotanto_teollisuus",
+                                                        "vienti", "kokonaistuotanto")
 
 
       if (checkUpdateCondition(as.POSIXct(readLines("data/updateCondition_decomp.txt")[2]))) {
-      #Päivitä lokaalisti säilytettävää FG:n data juioksevasti
-        dataToBeUpdated <- read.csv("./data/energiantuotanto_dekomponoitu.csv")
+      #Päivitä lokaalisti säilytettävää FG:n data juoksevasti
+        dataToBeUpdated <- data.table::fread("./data/energiantuotanto_dekomponoitu.csv")
 
         energiantuotanto_update <- do.call(data.frame, lapply(energialahteet,
-                                                              assign_energiantuotanto, startTime = max(as.POSIXct(dataToBeUpdated$time) + lubridate::hours(1)), endTime = Sys.time()))
+                                                              assign_energiantuotanto, startTime = max(as.POSIXct(dataToBeUpdated$time)),
+                                                              endTime = Sys.time()))
 
-        print("I'm updating")
+        print(paste("Updating data at time", as.character(Sys.time()), sep = " "))
+
+
 
         energiantuotanto_update <- energiantuotanto_update %>%
           select(c(2, 1, 3:ncol(energiantuotanto_update))) %>% #siirrä aikasarake df:n vasempaan reunaan
@@ -779,38 +780,84 @@ server <- function(input, output, session) {
         print(overlap)
         overlap_ind <- which(energiantuotanto_update$time %in% overlap)
         print(overlap_ind)
-        energiantuotanto_update <- energiantuotanto_update[-c(overlap_ind),]
-        print(energiantuotanto_update)
+        if (length(overlap_ind) != 0) {
+         energiantuotanto_update <- energiantuotanto_update[-c(overlap_ind),]
+        }
 
         energiantuotanto_update$time[nchar(as.character(energiantuotanto_update$time)) <= 10] <- paste(as.character(energiantuotanto_update$time[nchar(as.character(energiantuotanto_update$time)) <= 10]), "00:00:00", sep = " ")
 
-        dataToBeUpdated <- rbind(dataToBeUpdated, energiantuotanto_update) %>%
+        # Arrange dataframes to match each other column-wise
+        dataToBeUpdated <- dataToBeUpdated %>%
+          select(time, kokonaiskulutus, pientuotanto, tehoreservi, tuulivoima, vesivoima, ydinvoima, yhteistuotanto_kaukolämpö, yhteistuotanto_teollisuus, vienti, kokonaistuotanto)
+
+        energiantuotanto_update <- energiantuotanto_update %>%
+          select(time, kokonaiskulutus, pientuotanto, tehoreservi, tuulivoima, vesivoima, ydinvoima, yhteistuotanto_kaukolämpö, yhteistuotanto_teollisuus, vienti, kokonaistuotanto)
+
+        colnames(energiantuotanto_update) <- colnames(dataToBeUpdated)
+
+        # make sure that all columns are of the correct class
+        energiantuotanto_update <- energiantuotanto_update %>%
+          mutate(across(time, as.character)) %>%
+          mutate(across(!time, as.numeric))
+
+        dataToBeUpdated <- dataToBeUpdated %>%
+          mutate(across(time, as.character)) %>%
+          mutate(across(!time, as.numeric))
+
+        #print(dataToBeUpdated)
+        #print(energiantuotanto_update)
+
+        #print(dataToBeUpdated$yhteistuotanto_kaukolämpö)
+        #print(energiantuotanto_update$yhteistuotanto_kaukolämpö)
+
+        #dataToBeUpdated <- rbind(dataToBeUpdated, energiantuotanto_update) %>%
+        #  arrange(time)
+
+        # Rbind the dataframes in as foolproof of a way as possible
+        dataToBeUpdated <- data.table::rbindlist(list(dataToBeUpdated, energiantuotanto_update)) %>%
           arrange(time)
 
+        # Remove duplicate entries retroactively
+
+            temp <- dataToBeUpdated[dataToBeUpdated$time > (Sys.time() - lubridate::weeks(4)),]
+
+            dataToBeUpdated <- dataToBeUpdated[dataToBeUpdated$time <= (Sys.time() - lubridate::weeks(4)),]
+
+            temp <- temp[!duplicated(temp$time),]
+
+            dataToBeUpdated <- data.table::rbindlist(list(dataToBeUpdated, temp)) %>%
+              arrange(time)
 
         write.csv(dataToBeUpdated, "./data/energiantuotanto_dekomponoitu.csv",
                   row.names = FALSE)
 
         pgirmess::write.delim(as.character.POSIXt(Sys.time()), file = "data/updateCondition_decomp.txt")
 
-        energiantuotanto_data_frame_decomp <- read.csv("./data/energiantuotanto_dekomponoitu.csv")
+        energiantuotanto_data_frame_decomp <- data.table::fread("./data/energiantuotanto_dekomponoitu.csv")
 
       }
 
       energiantuotanto_data_frame_decomp <- energiantuotanto_data_frame_decomp[as.POSIXct(energiantuotanto_data_frame_decomp$time) > as.POSIXct(input$sahkoDate[1]) &
-                                                                                 as.POSIXct(energiantuotanto_data_frame_decomp$time) < Sys.time(),]
+                                                                                 as.POSIXct(energiantuotanto_data_frame_decomp$time) < as.POSIXct(input$sahkoDate[2]),]
 
       energiantuotanto_data_frame_decomp$time <- as.POSIXct(energiantuotanto_data_frame_decomp$time, format = "%Y-%m-%d %H:%M:%S")
+
+      print(energiantuotanto_data_frame_decomp)
 
     return(energiantuotanto_data_frame_decomp)
 
   })
 
+  #data <- read.csv("//home.org.aalto.fi/valivia1/data/Documents/GitHub/shiny_app/data/energiantuotanto_dekomponoitu.csv")
+  #data <- data[ -c(nrow(data)),]
+  #write.csv(data, "//home.org.aalto.fi/valivia1/data/Documents/GitHub/shiny_app/data/energiantuotanto_dekomponoitu.csv", row.names = FALSE)
+
+
   kokonaiskulutus_kokonaistuotanto_data_fd <- reactive({
 
     energialahteet <- c("reaali kokonaiskulutus", "reaali kokonaistuotanto")
 
-      energiantuotanto_data_frame_kulutus_tuotanto <- read.csv("./data/energiantuotanto_kulutus_tuotanto.csv")
+      energiantuotanto_data_frame_kulutus_tuotanto <- data.table::fread("./data/energiantuotanto_kulutus_tuotanto.csv")
 
       #energiantuotanto_data_frame_kulutus_tuotanto <- energiantuotanto_data_frame_kulutus_tuotanto[energiantuotanto_data_frame_kulutus_tuotanto$time > input$sahkoDate[1] &
       #                                                                                               energiantuotanto_data_frame_kulutus_tuotanto$time < Sys.time(),]
@@ -821,12 +868,13 @@ server <- function(input, output, session) {
 
     if (checkUpdateCondition(as.POSIXct(readLines("data/updateCondition_kulutus_tuotanto.txt")[2]))) {
       #Päivitä lokaalisti säilytettävää FG:n data juioksevasti
-      dataToBeUpdated <- read.csv("./data/energiantuotanto_kulutus_tuotanto.csv")
+      dataToBeUpdated <- data.table::fread("./data/energiantuotanto_kulutus_tuotanto.csv")
 
       energiantuotanto_update <- do.call(data.frame, lapply(energialahteet,
-                                                            assign_energiantuotanto, startTime = max(dataToBeUpdated$time), endTime = Sys.time()))
+                                                            assign_energiantuotanto, startTime = max(as.POSIXct(dataToBeUpdated$time)),
+                                                            endTime = Sys.time()))
 
-      print("I'm updating")
+      print(paste("Updating data at time", as.character(Sys.time()), sep = " "))
 
       energiantuotanto_update <- energiantuotanto_update %>%
         select(c(2, 1, 3:ncol(energiantuotanto_update))) %>% #siirrä aikasarake df:n vasempaan reunaan
@@ -837,18 +885,47 @@ server <- function(input, output, session) {
 
       #Prevent duplicate entries
       overlap <- intersect(dataToBeUpdated$time, energiantuotanto_update$time)
-      print(overlap)
+      #print(overlap)
       overlap_ind <- which(energiantuotanto_update$time %in% overlap)
-      print(overlap_ind)
-      energiantuotanto_update <- energiantuotanto_update[-c(overlap_ind),]
+      #print(overlap_ind)
+      if (length(overlap_ind) != 0) {
+        energiantuotanto_update <- energiantuotanto_update[-c(overlap_ind),]
+      }
+      #print(energiantuotanto_update)
+
+      print("Update: ")
       print(energiantuotanto_update)
 
+      dataToBeUpdated <- dataToBeUpdated %>%
+        select(time, kokonaistuotanto, kokonaiskulutus)
 
-      dataToBeUpdated <- rbind(dataToBeUpdated, energiantuotanto_update) %>%
+      energiantuotanto_update <- energiantuotanto_update %>%
+        select(time, kokonaistuotanto, kokonaiskulutus)
+
+      colnames(energiantuotanto_update) <- colnames(dataToBeUpdated)
+
+      energiantuotanto_update <- energiantuotanto_update %>%
+        mutate(across(time, as.character)) %>%
+        mutate(across(!time, as.numeric))
+
+      dataToBeUpdated <- dataToBeUpdated %>%
+        mutate(across(time, as.character)) %>%
+        mutate(across(!time, as.numeric))
+
+      print("Update: ")
+      print(energiantuotanto_update)
+
+      print("old:")
+      print(dataToBeUpdated)
+
+     # dataToBeUpdated <- rbind(dataToBeUpdated, energiantuotanto_update) %>%
+     #  arrange(time)
+
+      dataToBeUpdated <- data.table::rbindlist(list(dataToBeUpdated, energiantuotanto_update)) %>%
         arrange(time)
 
       #Remove duplicate entries retroactively. This should not be needed when the program is running normally.
-      dataToBeUpdated <- dataToBeUpdated[!duplicated(dataToBeUpdated$time),]
+      #dataToBeUpdated <- dataToBeUpdated[!duplicated(dataToBeUpdated$time),]
 
       write.csv(dataToBeUpdated, "./data/energiantuotanto_kulutus_tuotanto.csv",
                 row.names = FALSE)
@@ -860,11 +937,39 @@ server <- function(input, output, session) {
     }
 
       energiantuotanto_data_frame_kulutus_tuotanto <- energiantuotanto_data_frame_kulutus_tuotanto[energiantuotanto_data_frame_kulutus_tuotanto$time > as.POSIXct(input$sahkoDate[1]) &
-                                                                                                     energiantuotanto_data_frame_kulutus_tuotanto$time < Sys.time(),]
+                                                                                                     energiantuotanto_data_frame_kulutus_tuotanto$time < as.POSIXct(input$sahkoDate[2]),]
 
       energiantuotanto_data_frame_kulutus_tuotanto$time <- as.POSIXct(energiantuotanto_data_frame_kulutus_tuotanto$time, format = "%Y-%m-%d %H:%M:%S")
 
     return(energiantuotanto_data_frame_kulutus_tuotanto)
+
+  })
+
+  viimeisin <- reactive({
+
+    print(input$sahkoDate)
+
+    fd_viimeisin <- energiantuotanto_data_frame()[nrow(energiantuotanto_data_frame()),] %>%
+      mutate(across(!time, as.numeric)) %>%
+      pivot_longer(!time, names_to = "name", values_to = "value") %>%
+      mutate(name = gsub("_", " ", name), keep = "unused") %>%
+      mutate(name = paste0("reaali ", name), keep = "unused") %>%
+      select(value, name)
+
+    print(fd_viimeisin)
+
+    return(fd_viimeisin)
+
+  })
+
+  eilen <- reactive({
+
+    fd_eilen <- energiantuotanto_data_frame()[(nrow(energiantuotanto_data_frame()) - 24),] %>%
+      mutate(across(!time, as.numeric)) %>%
+      pivot_longer(!time, names_to = "name", values_to = "value") %>%
+      mutate(name = gsub("_", " ", name), keep = "unused") %>%
+      mutate(name = paste0("reaali ", name), keep = "unused") %>%
+      select(value, name)
 
   })
 
@@ -873,6 +978,8 @@ server <- function(input, output, session) {
   ## fingrid  -----------------------------
   output$kokonaiskulutus <- shinydashboard::renderValueBox({
 
+    print(uusin_kulutus)
+
     shinydashboard::valueBox(
       paste0(tuhaterotin(round(uusin_kulutus)), " MW"),
       "Sähkön reaaliaikainen kokonaiskulutus")
@@ -880,6 +987,8 @@ server <- function(input, output, session) {
   })
 
   output$kokonaistuotanto <- shinydashboard::renderValueBox({
+
+    print(uusin_tuotanto)
 
     shinydashboard::valueBox(
       paste0(tuhaterotin(round(uusin_tuotanto)), " MW"),
@@ -900,7 +1009,7 @@ server <- function(input, output, session) {
 
    #print(vuorokausi_sitten)
 
-    kulutus_eilen <- vuorokausi_sitten %>% select(kulutus) %>% pull()
+    kulutus_eilen <- vuorokausi_sitten$value[vuorokausi_sitten$name == "reaali kokonaiskulutus"]
 
     value <- (uusin_kulutus-kulutus_eilen)/kulutus_eilen
 
@@ -916,7 +1025,8 @@ server <- function(input, output, session) {
 
     #print(vuorokausi_sitten)
 
-    tuotanto_eilen <- vuorokausi_sitten %>% select(tuotanto) %>% pull()
+    tuotanto_eilen <- vuorokausi_sitten$value[vuorokausi_sitten$name == "reaali kokonaistuotanto"]
+
     value <- (uusin_tuotanto-tuotanto_eilen)/tuotanto_eilen
 
     etumerkki <- ifelse(value > 0, "+", "")
@@ -928,6 +1038,8 @@ server <- function(input, output, session) {
   })
 
   output$nettovienti <- shinydashboard::renderValueBox({
+
+    print(uusin_vienti)
 
     teksti <- ifelse(uusin_vienti > 0,
                      "Suomesta viedään sähköä",
@@ -971,21 +1083,17 @@ server <- function(input, output, session) {
     shinydashboard::valueBox(tuhaterotin(round(values[2]/values[1],2)), "Korkeatuloisin desiili kulutti tässä kuussa kertaa enemmän sähköä kuin pienituloisin desiili.")
     })
 
-
-
-
   # Plotit ----------------------------------------
-
-
-
-
 
   ## piirakkaplot -------------------------------------------
 
   output$piirakkaplot <- renderPlot({
 
+    #fd_data <- lataa_kaikki()
 
-    fd_data <- lataa_kaikki()
+    #print(fd_data)
+
+    fd_data <- viimeisin()
 
     plot_data <- fd_data%>%
       separate(name,c("turha", "name")) %>%
@@ -1004,7 +1112,6 @@ server <- function(input, output, session) {
       filter(name %in% c("kokonaistuotanto",
                          "kokonaiskulutus")) %>%
       pivot_wider(names_from = name, values_from = value)
-
 
     plot_data %>%
       ggplot(aes(x="", y=value, fill = name)) +
@@ -1082,31 +1189,35 @@ server <- function(input, output, session) {
             axis.title = element_text(size = 14))
   })
 
-  output$viikkoplot <- renderPlot({
+  output$viikkoplot <- renderPlotly({
 
     #print(kokonaiskulutus_kokonaistuotanto_data_fd())
     #data <- kokonaiskulutus_kokonaistuotanto_data_fd()
 
     data <- kokonaiskulutus_kokonaistuotanto_data_fd()
+    colnames(data) <- c("time", "kokonaistuotanto", "kokonaiskulutus")
 
     #print(n = 200,data)
 
-    if ((difftime(Sys.time(), input$sahkoDate[1]) > weeks(4)) & ! ("Näytä kuvaaja aina tunneittain" %in% input$reaaliaikaKuvaajaAsetus)) {
+    if ((difftime(Sys.time(), input$sahkoDate[1]) > weeks(4)) & ! ("Lukitse kuvaaja tuntitasolle" %in% input$reaaliaikaKuvaajaAsetus)) {
 
        data <- data %>%
-        mutate(time = lubridate::floor_date(time, unit = "days")) %>%
-        group_by(time) %>%
-        dplyr::summarise(across(c("kulutus", "tuotanto"), ~mean(.x, na.rm = TRUE)))
+        mutate(aika = lubridate::floor_date(time, unit = "days")) %>%
+        group_by(aika) %>%
+        dplyr::summarise(across(c("kokonaiskulutus", "kokonaistuotanto"), ~mean(.x, na.rm = TRUE)))
 
+    } else {
+      colnames(data) <- gsub("time", "aika", colnames(data))
     }
 
+    print(data)
+
     data %>%
-      pivot_longer(-time) %>%
-      ggplot(aes(x = time,
-                 y = value,
-                 colour = name,
-                 group = name)) +
-      geom_line(size = 1.5) +
+      pivot_longer(-aika, values_to = "arvo", names_to = "muuttuja") %>%
+      ggplot(aes(x = aika,
+                 y = arvo,
+                 colour = muuttuja)) +
+      geom_line(aes(y = arvo, col = muuttuja), size = 1) +
       scale_y_continuous(label = tuhaterotin)+
       scale_x_datetime(#breaks = "1 day",
                        date_labels = "%d.%m.")+
@@ -1118,18 +1229,24 @@ server <- function(input, output, session) {
       theme_light() +
       labs(x = NULL, y = 'MW')+
       theme(legend.position = 'bottom') +
-      theme(axis.text = element_text(size = 14),
-            axis.title = element_text(size = 14),
-            legend.text = element_text(size= 14))
+      theme(axis.text = element_text(size = 10),
+            axis.title = element_text(size = 10),
+            legend.text = element_text(size= 10))
+
+    ggplotly(tooltip = c("aika", "colour", "y"))  %>%
+      layout(legend = list(orientation = "h"))
 
   })
 
-  output$viikkoplot_dekomponoitu <- renderPlot({
+  output$viikkoplot_dekomponoitu <- renderPlotly({
 
-    energiantuotanto_data_frame <- energiantuotanto_data_frame()
+    #print(energiantuotanto_data_frame())
+
+    energiantuotanto_data_frame <- energiantuotanto_data_frame() %>%
+      select(-c(vienti, kokonaistuotanto))
     #print(energiantuotanto_data_frame)
 
-    if ((difftime(Sys.time(), input$sahkoDate[1]) > weeks(4)) & !("Näytä kuvaaja aina tunneittain" %in% input$reaaliaikaKuvaajaAsetus)) {
+    if ((difftime(Sys.time(), input$sahkoDate[1]) > weeks(4)) & !("Lukitse kuvaaja tuntitasolle" %in% input$reaaliaikaKuvaajaAsetus)) {
 
       #energiantuotanto_data_frame[,1] %<>% as.POSIXct()
 
@@ -1139,43 +1256,51 @@ server <- function(input, output, session) {
       #print(energiantuotanto_data_frame)
 
       energiantuotanto_data_frame <- energiantuotanto_data_frame %>%
-        mutate(time = lubridate::floor_date(time, unit = "days")) %>%
-        group_by(time) %>%
+        mutate(aika = lubridate::floor_date(time, unit = "days")) %>%
+        group_by(aika) %>%
         dplyr::summarise(across(c("pientuotanto", "tehoreservi", "tuulivoima",
                                   "vesivoima", "ydinvoima", "yhteistuotanto_kaukolämpö", "yhteistuotanto_teollisuus",
                                   "kokonaiskulutus"), ~mean(.x, na.rm = TRUE)))
 
+    } else {
+      colnames(energiantuotanto_data_frame) <- gsub("time", "aika", colnames(energiantuotanto_data_frame))
     }
 
     #print(energiantuotanto_data_frame)
 
     energiantuotanto_data_frame %>%
-      pivot_longer(cols = c(pientuotanto, tuulivoima, ydinvoima, tehoreservi, vesivoima, yhteistuotanto_kaukolämpö, yhteistuotanto_teollisuus)) %>%
+      pivot_longer(cols = c(pientuotanto, tuulivoima, ydinvoima, tehoreservi, vesivoima, yhteistuotanto_kaukolämpö, yhteistuotanto_teollisuus),
+                   values_to = "arvo", names_to = "muuttuja") %>%
+      mutate(muuttuja = gsub("_", ", ", muuttuja)) %>%
       pivot_longer(cols = c(kokonaiskulutus),
-                   names_to = "kokonaiskulutus", values_to = "kokonaiskulutus_arvo") %>%
+                   names_to = "kokkul", values_to = "kokonaiskulutus") %>%
 
-      ggplot(aes(time)) +
-      geom_col(aes(y = value, fill = name)) +
+      ggplot(aes(aika)) +
+      geom_col(aes(y = arvo, fill = muuttuja)) +
       scale_fill_manual(name = NULL,
-                         labels = c("pientuotanto", "tehoreservi", "tuulivoima",
-                                    "vesivoima", "ydinvoima", "yhteistuotanto, kaukolämpö", "yhteistuotanto, teollisuus"),
-                         values = c("#721d41", "#CC8EA0", "#FBE802", "#F16C13", "#FFF1E0", "#AED136", "#8482BD")) +
-      geom_line(aes(y = kokonaiskulutus_arvo, col = kokonaiskulutus), size = 1.25) +
+                         #labels = c("pientuotanto", "tehoreservi", "tuulivoima",
+                         #            "vesivoima", "ydinvoima", "yhteistuotanto, kaukolämpö", "yhteistuotanto, teollisuus"),
+                         values = c("#721d41", "#CC8EA0", "#FBE802", "#F16C13", "#FFF1E0", "#AED136", "#8482BD", "#393594")) +
+
+      geom_line(aes(y = kokonaiskulutus, col = kokkul), size = 1, show.legend = FALSE) +
+      scale_color_manual(name = NULL,
+                         labels = c("kokonaiskulutus"),
+                         values = c("#393594",
+                                    guide = "none")) +
+      guides(colour = "none") +
+
       scale_x_continuous(label = tuhaterotin) +
       scale_x_datetime(#breaks = "1 week",
                        date_labels = "%d.%m.") +
-      scale_color_manual(name = NULL,
-                         labels = c("kokonaiskulutus"),
-                         values = c("#393594")) +
-
            theme_light() +
            labs(x = NULL, y = 'MW') +
            theme(legend.position = 'bottom') +
-           theme(axis.text = element_text(size = 14),
-                 axis.title = element_text(size = 14),
-                 legend.text = element_text(size= 14))
+           theme(axis.text = element_text(size = 10),
+                 axis.title = element_text(size = 10),
+                 legend.text = element_text(size= 10))
 
-
+    ggplotly(tooltip = c("aika", "fill", "y")) %>%
+      layout(legend = list(orientation = "h"))
 
   })
 
@@ -2057,11 +2182,11 @@ server <- function(input, output, session) {
     ## filter
     if(input$employed == "kotikunnan saaneet") {
       data <- employed_kotikunta %>%
-        filter(tilasto_time > dmy("01/04/2022")) %>%
-        mutate(n = if_else(tilasto_time < dmy("01/03/2023"), 0, n))
+        filter(aika > dmy("01/04/2022")) %>%
+        mutate(n = if_else(aika < dmy("01/03/2023"), 0, n))
 
     } else {
-      data <- employed %>% filter(tilasto_time > dmy("01/04/2022"))
+      data <- employed %>% filter(aika > dmy("01/04/2022"))
     }
 
     return(data)
@@ -2076,7 +2201,7 @@ server <- function(input, output, session) {
 
       ## distinct
       summary <- data %>%
-        distinct(tilasto_time, n_total)
+        distinct(aika, n_total)
 
       ## plot
       p <- Ukraina_kuvaaja(summary, "none", FALSE, "lukumäärä", NULL, "henkilöä", alpha_u, font_size)
@@ -2126,20 +2251,21 @@ server <- function(input, output, session) {
 
       ## yleisimmät toimialat
       top <<- toimialat %>%
-        group_by(toimiala) %>%
+        group_by(toimiala_nimi) %>%
         dplyr::summarise(n = mean(n)) %>%
-        arrange(desc(n)) %>% slice(1:input$top) %>%
-        pull(toimiala)
+        arrange(desc(n)) %>%
+        slice(1:input$top) %>%
+        pull(toimiala_nimi)
       data <- toimialat
 
     } else {
 
       ## yleisimmät ammatit
       top <<- ammatit %>%
-        group_by(prof_l3) %>%
+        group_by(t3_nimi) %>%
         dplyr::summarise(n = mean(n))  %>%
         arrange(desc(n)) %>% slice(1:input$top) %>%
-        pull(prof_l3)
+        pull(t3_nimi)
       data <- ammatit
     }
 
@@ -2421,7 +2547,8 @@ server <- function(input, output, session) {
       paste0("datahuone_fdh_dekomponoitu_", as.character(input$sahkoDate[1]), "_", as.character(input$sahkoDate[2]), ".csv")
     },
     content = function(file){
-      data <- energiantuotanto_data_frame()
+      data <- energiantuotanto_data_frame() #%>%
+        #select(-c(vienti, kokonaistuotanto)) # TODO: MINE DATA UP TO 2019!
       write.csv(data, file, row.names = FALSE)
     }
   )
@@ -2432,4 +2559,3 @@ shinyApp(
   ui = ui,
   server = server
   )
-

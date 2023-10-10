@@ -1,4 +1,4 @@
-<font size="4">
+<font size="3">
 
 Sähkön pientuotanto tarkoittaa yksittäisten kotitalouksien  
 tuotantoa omaan käyttöön. Tyypillisimmät pientuotannon tyypit ovat  

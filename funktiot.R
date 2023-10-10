@@ -55,8 +55,12 @@ formatoi_kuukaudet_plot <- function(date){
 #'
 #' @examples
 lataa_data <- function(kansion_nimi, kuukaudet){
+
+  #boxplotit <- parallel::parLapply(
+   # lataa_data_cluster, kuukaudet, function(x) feather::read_feather(paste0("data/",kansion_nimi,"/data",x,".feather")))
+
   boxplotit <- lapply(
-    kuukaudet, function(x) feather::read_feather(paste0("data/",kansion_nimi,"/data",x,".feather")))
+   kuukaudet, function(x) feather::read_feather(paste0("data/",kansion_nimi,"/data",x,".feather")))
 
   names(boxplotit) <- kuukaudet
 
@@ -220,24 +224,24 @@ Ukraina_kuvaaja <- function(data, jaottelu, osuus, variable, grouping, ylabtxt, 
   }
 
   if (jaottelu == "none") {
-    lookup = c("aika"="tilasto_time", "lukumäärä"="n_total")
+    lookup = c("lukumäärä"="n_total")
     Ukraina_colours <- colors[8]
   } else if (grouping == "ikäryhmä" & osuus == FALSE) {
-    lookup = c("aika"="tilasto_time", "lukumäärä"="n", "ikäryhmä"="age_group")
+    lookup = c("lukumäärä"="n", "ikäryhmä"="age_group")
   } else if (grouping == "sukupuoli" & osuus == FALSE) {
-    lookup = c("aika"="tilasto_time", "lukumäärä"="n")
+    lookup = c("lukumäärä"="n")
     col_pos <- "dodge"
     Ukraina_colours <- c(colors[4], colors[8])
   } else if (grouping == "ikäryhmä" & osuus == TRUE) {
-    lookup = c("aika"="tilasto_time", "osuus"="n", "ikäryhmä"="age_group")
+    lookup = c("osuus"="n", "ikäryhmä"="age_group")
   } else if (grouping == "sukupuoli" & osuus == TRUE) {
-    lookup = c("aika"="tilasto_time", "osuus"="n")
+    lookup = c( "osuus"="n")
     col_pos <- "dodge"
     Ukraina_colours <- c(colors[4], colors[8])
   } else if (grouping == "ala" & osuus == FALSE & jaottelu != "ammatti") {
-    lookup = c("aika" = "tilasto_time", "lukumäärä"="n") #, "ala" = "toimiala"
+    lookup = c( "lukumäärä"="n") #, "ala" = "toimiala"
   } else if (jaottelu == "ammatti" & osuus == FALSE) {
-    lookup = c("aika" = "tilasto_time", "lukumäärä"="n") #, "ala" = "nimi_fi"
+    lookup = c("lukumäärä"="n") #, "ala" = "nimi_fi"
   }
 
   p <- data %>%
@@ -267,21 +271,21 @@ Ukraina_kuvaaja <- function(data, jaottelu, osuus, variable, grouping, ylabtxt, 
 Ukraina_aggregaattori <- function(data, param) {
 
   switch(param,
-         none = distinct(data, tilasto_time, n_total),
+         none = distinct(data, aika, n_total),
          ikäryhmä = data %>%
-           group_by(tilasto_time, n_total, age_group) %>%
+           group_by(aika, n_total, age_group) %>%
            summarise(n = sum(n)),
          sukupuoli = data %>%
-           group_by(tilasto_time, n_total, sukupuoli) %>%
+           group_by(aika, n_total, sukupuoli) %>%
            summarise(n = sum(n)),
          toimiala = data %>%
-           filter(tilasto_time > ymd("2022-04-01")) %>%
-           filter(toimiala %in% top) %>%
-           mutate(ala = toimiala),
+           filter(aika > ymd("2022-04-01")) %>%
+           filter(toimiala_nimi %in% top) %>%
+           mutate(ala = toimiala_nimi ),
          ammatti = data %>%
-           filter(tilasto_time > ymd("2022-04-01")) %>%
-           filter(prof_l3 %in% top) %>%
-           mutate(ala = nimi_fi)
+           filter(aika > ymd("2022-04-01")) %>%
+           filter(t3_nimi %in% top) %>%
+           mutate(ala = t3_nimi)
         )
 
 }
@@ -310,7 +314,7 @@ assign_energiantuotanto_2 <- function(time, nimi_energialahde) {
 
 numerolle_teksti <- function(numero) {
 
-  switch(as.character(numero), #Switch tekee t käytännössä saman asian kuin dict (vrt. fingrid_sanakirja())
+  switch(as.character(numero), #Switch tekee tässä käytännössä saman asian kuin dict (vrt. fingrid_sanakirja())
          "1" = "Yksi",
          "2" = "Kaksi",
          "3" = "Kolme",
@@ -330,13 +334,16 @@ fetch_energialahteet <- function() {
            "reaali yhteistuotanto teollisuus",
            "reaali pientuotanto",
            "reaali ydinvoima",
-           "reaali kokonaiskulutus"))
+           "reaali kokonaiskulutus",
+           "reaali vienti",
+           "reaali kokonaistuotanto"))
 }
 
 louhi_dataa_FG <- function() {
 
   energialahteet <- fetch_energialahteet()
   energialahteet <- c("reaali kokonaiskulutus", "reaali kokonaistuotanto")
+  energialahteet <- c("ennuste aurinko")
 
   date_vec <<- c(as.character(Sys.time()), "2023-08-01", "2023-07-01", "2023-06-01", "2023-05-01", "2023-04-01", "2023-03-01", "2023-02-01", "2023-01-01",
                 "2022-12-01", "2022-11-01" ,"2022-10-01", "2022-09-01", "2022-08-01", "2022-07-01", "2022-06-01", "2022-05-01", "2022-04-01", "2022-03-01", "2022-02-01", "2022-01-01",
@@ -351,22 +358,24 @@ louhi_dataa_FG <- function() {
     #energiantuotanto_data_frame <- do.call(data.frame, lapply(date_vec, assign_energiantuotanto_2,
     #                                                          nimi = energialahteet[i]))
 
-    assign(paste("energiantuotanto_data_frame", energialahteet[i], sep = "_"), do.call(rbind, lapply(date_vec, assign_energiantuotanto_2,
-                                                                                                          nimi = energialahteet[i])), .GlobalEnv)
+    #assign(paste("energiantuotanto_data_frame", energialahteet[i], sep = "_"), do.call(rbind, lapply(date_vec, assign_energiantuotanto_2,
+    #                                                                                                      nimi = energialahteet[i])), .GlobalEnv)
+
+    assign("aurinko_data", do.call(rbind, lapply(date_vec, assign_energiantuotanto_2, nimi = energialahteet[i])), .GlobalEnv)
 
     #assign(paste("energiantuotanto_data_frame", energialahteet[i], sep = "_"),
     #       energiantuotanto_data_frame)
 
-    filevec <<- c(filevec, paste("energiantuotanto_data_frame", date_vec[i], date_vec[i+1], sep = "_"))
+    #filevec <<- c(filevec, paste("energiantuotanto_data_frame", date_vec[i], date_vec[i+1], sep = "_"))
 
   }
 
 }
 
 checkUpdateCondition <- function(x) {
-  # This function updates the data specified if a week has lapsed since the last update
+  # This function updates the data specified if an hour has lapsed since the last update
 
-  if (x < (Sys.Date() - lubridate::hours(3))) {
+  if (x < (Sys.time() - lubridate::hours(2))) {
     return(TRUE) #This should be TRUE.
   } else {
     return(FALSE) #This should be FALSE. Set it TRUE for testing
