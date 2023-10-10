@@ -68,19 +68,19 @@ employed  <- read_csv("./data/summaries/employed_age_gender.csv")
 employed_kotikunta <- read_csv("./data/summaries/employed_age_pop.csv")
 
 ## age group to factor
-levels <- c("alle 15","15–19", "20–24", "25–54", "55–64", "yli 64")
+levels <- c("alle 15","15-19", "20-24", "25-54", "55-64", "yli 64")
 ei_kotikuntaa <- ei_kotikuntaa %>% mutate(age_group = factor(age_group, levels = levels))
 
 levels <- ikajakauma %>% distinct(age_group) %>% pull()
 ikajakauma <- ikajakauma %>% mutate(age_group = factor(age_group, levels = levels))
 
 ## industry to factor
-levels <- toimialat %>% distinct(toimiala) %>% pull()
-toimialat <- toimialat %>% mutate(toimiala = factor(toimiala, levels = levels))
+levels <- toimialat %>% distinct(toimiala_nimi) %>% pull()
+toimialat <- toimialat %>% mutate(toimiala_nimi = factor(toimiala_nimi, levels = levels))
 
 ## profession to factor
-levels <- ammatit %>% distinct(nimi_fi) %>% pull()
-ammatit <- ammatit %>% mutate(nimi_fi = factor(nimi_fi, levels = levels))
+levels <- ammatit %>% distinct(t3_nimi) %>% pull()
+ammatit <- ammatit %>% mutate(t3_nimi = factor(t3_nimi, levels = levels))
 
 #testi miten orgasnisaatiot toimii
 
@@ -2182,11 +2182,11 @@ server <- function(input, output, session) {
     ## filter
     if(input$employed == "kotikunnan saaneet") {
       data <- employed_kotikunta %>%
-        filter(tilasto_time > dmy("01/04/2022")) %>%
-        mutate(n = if_else(tilasto_time < dmy("01/03/2023"), 0, n))
+        filter(aika > dmy("01/04/2022")) %>%
+        mutate(n = if_else(aika < dmy("01/03/2023"), 0, n))
 
     } else {
-      data <- employed %>% filter(tilasto_time > dmy("01/04/2022"))
+      data <- employed %>% filter(aika > dmy("01/04/2022"))
     }
 
     return(data)
@@ -2201,7 +2201,7 @@ server <- function(input, output, session) {
 
       ## distinct
       summary <- data %>%
-        distinct(tilasto_time, n_total)
+        distinct(aika, n_total)
 
       ## plot
       p <- Ukraina_kuvaaja(summary, "none", FALSE, "lukumäärä", NULL, "henkilöä", alpha_u, font_size)
@@ -2251,20 +2251,21 @@ server <- function(input, output, session) {
 
       ## yleisimmät toimialat
       top <<- toimialat %>%
-        group_by(toimiala) %>%
+        group_by(toimiala_nimi) %>%
         dplyr::summarise(n = mean(n)) %>%
-        arrange(desc(n)) %>% slice(1:input$top) %>%
-        pull(toimiala)
+        arrange(desc(n)) %>%
+        slice(1:input$top) %>%
+        pull(toimiala_nimi)
       data <- toimialat
 
     } else {
 
       ## yleisimmät ammatit
       top <<- ammatit %>%
-        group_by(prof_l3) %>%
+        group_by(t3_nimi) %>%
         dplyr::summarise(n = mean(n))  %>%
         arrange(desc(n)) %>% slice(1:input$top) %>%
-        pull(prof_l3)
+        pull(t3_nimi)
       data <- ammatit
     }
 
