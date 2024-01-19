@@ -258,7 +258,7 @@ ui <- navbarPage(
             choices = c("Kokonaiskulutus",
                         "per capita")
           ),
-          p("Voit vaikuttaa kuvaajaan muuttamalla yllä olevia valintoja")
+          p("Voit vaikuttaa kuvaajaan muuttamalla yllä olevia valintoja \nHuom! Dataa ei ole saatavilla vuoden 2023 toukokuulta")
         ),
         mainPanel(
           fluidRow(h1("Yksityishenkilöiden yhteenlaskettu sähkönkäyttö")),
@@ -310,7 +310,7 @@ ui <- navbarPage(
               label = 'Lukitse kuvaajan y-akselin skaala',
               value = TRUE
             ),
-            p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon.")
+            p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon. \nHuom! Dataa ei ole saatavilla vuoden 2023 toukokuulta")
           ),
 
           mainPanel(
@@ -1258,9 +1258,8 @@ server <- function(input, output, session) {
       energiantuotanto_data_frame <- energiantuotanto_data_frame %>%
         mutate(aika = lubridate::floor_date(time, unit = "days")) %>%
         group_by(aika) %>%
-        dplyr::summarise(across(c("pientuotanto", "tehoreservi", "tuulivoima",
-                                  "vesivoima", "ydinvoima", "yhteistuotanto_kaukolämpö", "yhteistuotanto_teollisuus",
-                                  "kokonaiskulutus"), ~mean(.x, na.rm = TRUE)))
+        dplyr::summarise(across(c("ydinvoima", "vesivoima", "pientuotanto", "tehoreservi", "yhteistuotanto_teollisuus", "yhteistuotanto_kaukolämpö",
+                                  "tuulivoima", "kokonaiskulutus"), ~mean(.x, na.rm = TRUE)))
 
     } else {
       colnames(energiantuotanto_data_frame) <- gsub("time", "aika", colnames(energiantuotanto_data_frame))
@@ -1269,14 +1268,16 @@ server <- function(input, output, session) {
     #print(energiantuotanto_data_frame)
 
     energiantuotanto_data_frame %>%
-      pivot_longer(cols = c(pientuotanto, tuulivoima, ydinvoima, tehoreservi, vesivoima, yhteistuotanto_kaukolämpö, yhteistuotanto_teollisuus),
+      pivot_longer(cols = c(ydinvoima, vesivoima, pientuotanto, tehoreservi, yhteistuotanto_teollisuus, yhteistuotanto_kaukolämpö, tuulivoima),
                    values_to = "arvo", names_to = "muuttuja") %>%
       mutate(muuttuja = gsub("_", ", ", muuttuja)) %>%
       pivot_longer(cols = c(kokonaiskulutus),
                    names_to = "kokkul", values_to = "kokonaiskulutus") %>%
+      group_by(muuttuja) %>%
+      mutate(order = row_number()) %>%
 
       ggplot(aes(aika)) +
-      geom_col(aes(y = arvo, fill = muuttuja)) +
+      geom_col(aes(y = arvo, fill = muuttuja, group = order)) +
       scale_fill_manual(name = NULL,
                          #labels = c("pientuotanto", "tehoreservi", "tuulivoima",
                          #            "vesivoima", "ydinvoima", "yhteistuotanto, kaukolämpö", "yhteistuotanto, teollisuus"),
