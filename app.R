@@ -2376,28 +2376,27 @@ server <- function(input, output, session) {
 
         ## distinct
         summary <- data %>%
-          distinct(tilasto_time, n_total) %>%
-          rename(c("aika" = "tilasto_time", "n" = "n_total"))
+          distinct(aika, n_total) %>%
+          rename(c("n" = "n_total"))
 
       } else if(input$jaottelu == "ikäryhmä") {
 
         ## summarise
         summary <- data %>%
-          group_by(tilasto_time, n_total, age_group) %>%
+          group_by(aika, n_total, age_group) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
           mutate(osuus = round(osuus, 2)) %>%
-          rename(c("aika" = "tilasto_time", "ikäryhmä" = "age_group"))
+          rename(c("ikäryhmä" = "age_group"))
 
       } else if (input$jaottelu == "sukupuoli"){
 
         ## summarise
         summary <- data %>%
-          group_by(tilasto_time, n_total, sukupuoli) %>%
+          group_by(aika, n_total, sukupuoli) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
-          mutate(osuus = round(osuus, 2)) %>%
-          rename(c("aika" = "tilasto_time"))
+          mutate(osuus = round(osuus, 2))
 
       }
 
@@ -2425,38 +2424,37 @@ server <- function(input, output, session) {
 
         ## distinct
         summary <- data %>%
-          distinct(tilasto_time, n_total) %>%
-          rename(c("aika" = "tilasto_time", "n" = "n_total"))
+          distinct(aika, n_total) %>%
+          rename(c( "n" = "n_total"))
 
       } else if(input$jaottelu_emp == "ikäryhmä") {
 
         if(input$employed == "kotikunnan saaneet") {
           data <- data %>%
-            filter(tilasto_time >  dmy("01/02/2023"))
+            filter(aika >  dmy("01/02/2023"))
         }
 
         ## summarise
         summary <- data %>%
-          group_by(tilasto_time, n_total, age_group) %>%
+          group_by(aika, n_total, age_group) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
           mutate(osuus = round(osuus, 2)) %>%
-          rename(c("aika" = "tilasto_time", "ikäryhmä" = "age_group"))
+          rename(c("ikäryhmä" = "age_group"))
 
       } else if (input$jaottelu_emp == "sukupuoli"){
 
         if(input$employed == "kotikunnan saaneet") {
           data <- data %>%
-            filter(tilasto_time >  dmy("01/02/2023"))
+            filter(aika >  dmy("01/02/2023"))
         }
 
         ## summarise
         summary <- data %>%
-          group_by(tilasto_time, n_total, sukupuoli) %>%
+          group_by(aika, n_total, sukupuoli) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
-          mutate(osuus = round(osuus, 2)) %>%
-          rename(c("aika" = "tilasto_time"))
+          mutate(osuus = round(osuus, 2))
 
       }
 
@@ -2482,8 +2480,7 @@ server <- function(input, output, session) {
       data <- ukraina_alat_ja_ammatit()
 
       ## rename variables
-      data <- data %>% select(-ala) %>%
-        rename(any_of(c("aika" = "tilasto_time", "ammattikoodi" = "prof_l3")))
+      data <- data %>% select(-ala)
 
       write.csv(data, file, row.names = F, fileEncoding = "ISO-8859-1")
     }
