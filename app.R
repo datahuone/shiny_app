@@ -2479,8 +2479,8 @@ server <- function(input, output, session) {
       ## get the data
       data <- ukraina_alat_ja_ammatit()
 
-      ## rename variables
-      data <- data %>% select(-ala)
+      # ## rename variables
+      # data <- data %>% select(-ala)
 
       write.csv(data, file, row.names = F, fileEncoding = "ISO-8859-1")
     }
