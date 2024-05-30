@@ -37,6 +37,7 @@ Kunnan_nimet <- kunnat %>% distinct(kunnan_nimi)
 #jostain syystä tätä ei voi pitää observe eventin sisällä muut datat ladataan sertrverissä
 boxplotit_asuntokunnat <- lataa_data("asuntokunnittain_boxplotit", kuukaudet)
 aikasarja_data_raw <- feather::read_feather("data/aikasarjat/kulutus_kk.feather")
+kunnat_data_raw <- feather::read_feather("data/kunta_kvantiilit/kunnat_kaikki.feather")
 
 # URL osoitteet -----------------------------------------
 
@@ -213,10 +214,10 @@ ui <- navbarPage(
           column(
             h1("Kotitalouksien sähkönkulutus - Fingrid Datahubin tilastotietojen tarkastelu"),
             includeMarkdown("tekstit/sahko_leipateksti.md"),
-           width = 6),
-          column(
-            plotOutput("piirakkaplot"),
-            width = 6)
+           width = 12)#, Jos reaaliaikainen piirakkakuvaaja palautetaan Shinyyn, tämän osion leveys tulee muuttaa kahdestatoista kuuteen
+          #column(
+            #plotOutput("piirakkaplot"),
+          #  width = 6)
           ))
     ),
     ### aikasarjapaneeli ----------------------
@@ -258,6 +259,11 @@ ui <- navbarPage(
             choices = c("Kokonaiskulutus",
                         "per capita")
           ),
+          checkboxInput(
+            inputId = 'aikasarjaViivat',
+            label = 'Lisää kuvaajaan jakaumaviivat (5% ja 95%)',
+            value = TRUE
+          ),
           p("Voit vaikuttaa kuvaajaan muuttamalla yllä olevia valintoja")
         ),
         mainPanel(
@@ -267,13 +273,20 @@ ui <- navbarPage(
             ),
           fluidRow(
             downloadButton("download_aikasarja", "Lataa csv")
+          ),
+          fluidRow(h2("Kotitalouksien sähkönkulutus tuloluokittain, jakaumakuvio")),
+          fluidRow(
+            column(plotOutput("aikasarjaplot_viikset"), width = 11),
+          ),
+          fluidRow(
+            downloadButton("download_viiksiplot", "Lataa csv")
           )
           )
         )
       ),
 ## desiilipaneeli --------------------------------
     tabPanel(
-      title = "Sosioekonomisten muuttujat",
+      title = "Sosioekonomiset muuttujat",
       value = sah_desiili_url,  #valueta käyteteään url muodostamiseen
       sidebarLayout(
           sidebarPanel(
@@ -310,7 +323,7 @@ ui <- navbarPage(
               label = 'Lukitse kuvaajan y-akselin skaala',
               value = TRUE
             ),
-            p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon.")
+            p("Valinnat vaikuttavat sekä viereiseen kuvaajaan että alapuolelta ladattavaan csv-tiedostoon. \nHuom! Dataa ei ole saatavilla vuoden 2023 toukokuulta")
           ),
 
           mainPanel(
@@ -349,68 +362,68 @@ ui <- navbarPage(
           )
         ),
  # reaaliaikainen ----------------------------------------------
-     tabPanel(
+     #tabPanel(
 
-       shinyjs::useShinyjs(),
+       #shinyjs::useShinyjs(),
 
-       title = "Reaaliaikainen sähkönkäyttötilanne",
-       value = sah_reaaliaikainen_url,
-       sidebarLayout(
-         sidebarPanel(
-           dateRangeInput(
-             "sahkoDate", "Valitse aikaväli:",
-             start = Sys.time()-lubridate::weeks(1),
-             end = Sys.time(),
-             min = lubridate::as_datetime("27-11-2019", format = "%d-%m-%Y"),
-             max = Sys.time(),
-             separator = "-"
-           ),
+       #title = "Reaaliaikainen sähkönkäyttötilanne",
+       #value = sah_reaaliaikainen_url,
+       #sidebarLayout(
+        # sidebarPanel(
+        #   dateRangeInput(
+        #     "sahkoDate", "Valitse aikaväli:",
+        #     start = Sys.time()-lubridate::weeks(1),
+        #     end = Sys.time(),
+        #     min = lubridate::as_datetime("27-11-2019", format = "%d-%m-%Y"),
+        #     max = Sys.time(),
+        #     separator = "-"
+        #   ),
 
-           checkboxGroupInput("reaaliaikaKuvaajaAsetus", "",
-                              c("Lukitse kuvaaja tuntitasolle"), selected = NA),
+        #   checkboxGroupInput("reaaliaikaKuvaajaAsetus", "",
+        #                      c("Lukitse kuvaaja tuntitasolle"), selected = NA),
 
-           p("Voit muokata esitysmuotoa yllä olevilla asetuksilla. Kuvaajan oletusasetus on muuttaa tarkasteluaikaväli päiviin, kun valittu aikaväli on pidempi kuin kuukausi.
-             Tätä asetusta voi muuttaa, mutta kuvaaja saattaa tällöin latautua hitaasti. Ladattavaan dataan vaikuttaa ainoastaan valittu aikaväli."),
+        #   p("Voit muokata esitysmuotoa yllä olevilla asetuksilla. Kuvaajan oletusasetus on muuttaa tarkasteluaikaväli päiviin, kun valittu aikaväli on pidempi kuin kuukausi.
+        #     Tätä asetusta voi muuttaa, mutta kuvaaja saattaa tällöin latautua hitaasti. Ladattavaan dataan vaikuttaa ainoastaan valittu aikaväli."),
 
-           actionButton("resetSahko", "Palauta oletusasetukset")
-         ),
+        #   actionButton("resetSahko", "Palauta oletusasetukset")
+        # ),
 
-         mainPanel(
-           fluidRow(
-             h1("Reaaliaikainen sähkönkäyttötilanne")
-           ),
-           fluidRow(
-             valueBoxOutput("kokonaiskulutus", width = 4),
-             valueBoxOutput("kokonaistuotanto", width = 4),
-             valueBoxOutput("tuulisuhde", width = 4)
-           ),
-           fluidRow(
-             valueBoxOutput("muutoskulutus", width = 4),
-             valueBoxOutput("muutostuotanto", width = 4),
-             valueBoxOutput("nettovienti", width = 4)
-           ),
-           fluidRow(h2("Sähkön kulutus sekä tuotanto Suomessa")),
-           fluidRow(
-             column(plotlyOutput("viikkoplot"), width = 10)
-           ),
-           fluidRow(
-             column(plotlyOutput("viikkoplot_dekomponoitu"), width = 10)
-           ),
-           fluidRow(
-             column(
-               p("Lähde: Fingridin avoin data -verkkopalvelu"),width = 4
-             )
-           ),
+        # mainPanel(
+        #   fluidRow(
+        #     h1("Reaaliaikainen sähkönkäyttötilanne")
+        #   ),
+        #   fluidRow(
+        #     valueBoxOutput("kokonaiskulutus", width = 4),
+        #     valueBoxOutput("kokonaistuotanto", width = 4),
+        #     valueBoxOutput("tuulisuhde", width = 4)
+        #   ),
+        #   fluidRow(
+        #     valueBoxOutput("muutoskulutus", width = 4),
+        #     valueBoxOutput("muutostuotanto", width = 4),
+        #     valueBoxOutput("nettovienti", width = 4)
+        # ),
+        #   fluidRow(h2("Sähkön kulutus sekä tuotanto Suomessa")),
+        #   fluidRow(
+        #     column(plotlyOutput("viikkoplot"), width = 10)
+        #   ),
+        #   fluidRow(
+        #     column(plotlyOutput("viikkoplot_dekomponoitu"), width = 10)
+        #   ),
+        #   fluidRow(
+        #     column(
+        #       p("Lähde: Fingridin avoin data -verkkopalvelu"),width = 4
+        #     )
+        #   ),
 
-           fluidRow(
-             downloadButton("download_dekomponoitu", "Lataa csv")
-           )
-         )
+          # fluidRow(
+         #    downloadButton("download_dekomponoitu", "Lataa csv")
+        #   )
+       #  )
 
 
-       )
+      # )
 
-     ),
+     #),
 
     tabPanel(
       title = "Taustaa datasta",
@@ -560,7 +573,8 @@ server <- function(input, output, session) {
 
   observeEvent(input$navbarID, {
     #hakee fingridin viikkodatan vain jos on sahkonkulutus/reaaliaikainen välilehdellä'
-    if(input$navbarID %in% c(sahk_etusivu_url, sah_reaaliaikainen_url)){ #sahk_etusivu_url,
+    #if(input$navbarID %in% c(sahk_etusivu_url, sah_reaaliaikainen_url)){ #sahk_etusivu_url,
+    if(FALSE){
 
       vuorokausi_sitten <<- eilen()
 
@@ -580,7 +594,9 @@ server <- function(input, output, session) {
 
   observeEvent(input$navbarID, {
     #hakee fingridin reaaliaikaisen datan vain jos on sahkonkulutus/reaaliaikainen-välilehdillä'
-    if(input$navbarID %in% c(sahk_etusivu_url, sah_reaaliaikainen_url)){ #
+    #if(input$navbarID %in% c(sahk_etusivu_url, sah_reaaliaikainen_url)){ #
+      #if(input$navbarID %in% c(sah_reaaliaikainen_url)){ #
+    if(FALSE){ #
 
       viimeisin_fingrid <- viimeisin()
       print(viimeisin_fingrid)
@@ -617,6 +633,7 @@ server <- function(input, output, session) {
   observeEvent(input$navbarID, {
     #hakee fingridin viikkodatan vain jos on sahkonkulutus/reaaliaikainen välilehdellä'
     if(input$navbarID  %in% c(sahk_etusivu_url, sah_reaaliaikainen_url)){
+    #if(FALSE){
 
       print("Loading data")
 
@@ -738,6 +755,37 @@ server <- function(input, output, session) {
 
   })
 
+  kunnat_data <- reactive({
+
+    if (input$tarktaso == 'Maakunnittain') {
+
+      kunnat_data_raw <- kunnat_data_raw %>%
+        select(kunnan_nimi, Q_5, Q_25, Q_50, Q_75, Q_95, maakunta, kuukausi) %>%
+        left_join(kunnat) %>%
+        group_by(maakunta, kuukausi) %>%
+        summarise_at(c("Q_5", "Q_25", "Q_50", "Q_75", "Q_95"), ~mean(.x)) %>%
+        rename(alue = maakunta) %>%
+        filter(alue %in% input$valitut)
+
+    } else if (input$tarktaso == 'Kunnittain') {
+
+      kunnat_data_raw <- kunnat_data_raw %>%
+        select(kunnan_nimi, Q_5, Q_25, Q_50, Q_75, Q_95, maakunta, kuukausi) %>%
+        rename(alue = kunnan_nimi) %>%
+        filter(alue %in% input$valitut)
+
+    } else {
+
+      kunnat_data_raw <- kunnat_data_raw %>%
+        group_by(kuukausi) %>%
+        select(kunnan_nimi, Q_5, Q_25, Q_50, Q_75, Q_95, maakunta, kuukausi) %>%
+        summarise_at(c("Q_5", "Q_25", "Q_50", "Q_75", "Q_95"), ~mean(.x)) %>%
+        mutate(alue = "Suomi")
+
+    }
+
+  })
+
   #print(input$sahkoDate)
   globalEndTime <- reactive({
     return(input$sahkoDate[1])
@@ -756,7 +804,9 @@ server <- function(input, output, session) {
                                                         "vienti", "kokonaistuotanto")
 
 
-      if (checkUpdateCondition(as.POSIXct(readLines("data/updateCondition_decomp.txt")[2]))) {
+      #if (checkUpdateCondition(as.POSIXct(readLines("data/updateCondition_decomp.txt")[2]))) {
+      if (FALSE) {
+        print("update condition TRUE")
       #Päivitä lokaalisti säilytettävää FG:n data juoksevasti
         dataToBeUpdated <- data.table::fread("./data/energiantuotanto_dekomponoitu.csv")
 
@@ -866,7 +916,9 @@ server <- function(input, output, session) {
       #print(colnames(energiantuotanto_data_frame_kulutus_tuotanto))
       colnames(energiantuotanto_data_frame_kulutus_tuotanto) <- c("time", "tuotanto", "kulutus")
 
-    if (checkUpdateCondition(as.POSIXct(readLines("data/updateCondition_kulutus_tuotanto.txt")[2]))) {
+    #if (checkUpdateCondition(as.POSIXct(readLines("data/updateCondition_kulutus_tuotanto.txt")[2]))) {
+      if (FALSE) {
+      #if (FALSE) {
       #Päivitä lokaalisti säilytettävää FG:n data juioksevasti
       dataToBeUpdated <- data.table::fread("./data/energiantuotanto_kulutus_tuotanto.csv")
 
@@ -1151,6 +1203,7 @@ server <- function(input, output, session) {
   output$aikasarjaplot <- renderPlot({
 
     data <- aikasarja_data()
+    print(data)
 
     if(input$suure == 'per capita'){
 
@@ -1187,6 +1240,63 @@ server <- function(input, output, session) {
       theme_light() +
       theme(axis.text = element_text(size = 14),
             axis.title = element_text(size = 14))
+  })
+
+  output$aikasarjaplot_viikset <- renderPlot({
+
+    data <- kunnat_data()
+    print(data)
+
+    y_akseli <-"Sähkönkulutus kWh / kotitalous"
+
+    data <- data %>%
+      ungroup() %>%
+      filter(kuukausi >= input$aikasarja[1],
+             kuukausi <= input$aikasarja[2])
+
+    viiksiplot <- ggplot(data = data,
+        aes(x = kuukausi,
+            y = Q_50,
+            color = alue),
+        alpha = 0.2
+      )
+
+    if (input$aikasarjaViivat == TRUE) {
+      viiksiplot <- viiksiplot + geom_boxplot(aes(color = alue,
+                                                  group = interaction(kuukausi, alue),
+                                                  lower = Q_25,
+                                                  upper = Q_75,
+                                                  middle = Q_50,
+                                                  ymin = Q_5,
+                                                  ymax = Q_95),
+                                              stat = "identity",
+                                              position = "dodge") +
+        coord_cartesian(ylim = c(0,max(data$Q_95))) +
+        scale_color_brewer(palette = "Dark2",
+                           name = '5 % - 25 % - mediaani - 75 % - 95 %')
+    } else if (input$aikasarjaViivat == FALSE) {
+      viiksiplot <- viiksiplot + geom_boxplot(aes(color = alue,
+                                                  group = interaction(kuukausi, alue),
+                                                  lower = Q_25,
+                                                  upper = Q_75,
+                                                  middle = Q_50,
+                                                  ymin = Q_25,
+                                                  ymax = Q_75),
+                                              stat = "identity",
+                                              position = "dodge") +
+        coord_cartesian(ylim = c(0,max(data$Q_75))) +
+        scale_color_brewer(palette = "Dark2",
+                           name = '25 % - mediaani- 75 %')
+    }
+    viiksiplot + scale_y_continuous(name = y_akseli,
+                         label = tuhaterotin)+
+      scale_x_date(name = NULL,
+                   label = formatoi_kuukaudet_plot) +
+      theme_light() +
+      theme(legend.position = 'bottom',
+            axis.text = element_text(size = 14),
+            axis.title = element_text(size = 14))
+
   })
 
   output$viikkoplot <- renderPlotly({
@@ -1258,9 +1368,8 @@ server <- function(input, output, session) {
       energiantuotanto_data_frame <- energiantuotanto_data_frame %>%
         mutate(aika = lubridate::floor_date(time, unit = "days")) %>%
         group_by(aika) %>%
-        dplyr::summarise(across(c("pientuotanto", "tehoreservi", "tuulivoima",
-                                  "vesivoima", "ydinvoima", "yhteistuotanto_kaukolämpö", "yhteistuotanto_teollisuus",
-                                  "kokonaiskulutus"), ~mean(.x, na.rm = TRUE)))
+        dplyr::summarise(across(c("ydinvoima", "vesivoima", "pientuotanto", "tehoreservi", "yhteistuotanto_teollisuus", "yhteistuotanto_kaukolämpö",
+                                  "tuulivoima", "kokonaiskulutus"), ~mean(.x, na.rm = TRUE)))
 
     } else {
       colnames(energiantuotanto_data_frame) <- gsub("time", "aika", colnames(energiantuotanto_data_frame))
@@ -1269,14 +1378,16 @@ server <- function(input, output, session) {
     #print(energiantuotanto_data_frame)
 
     energiantuotanto_data_frame %>%
-      pivot_longer(cols = c(pientuotanto, tuulivoima, ydinvoima, tehoreservi, vesivoima, yhteistuotanto_kaukolämpö, yhteistuotanto_teollisuus),
+      pivot_longer(cols = c(ydinvoima, vesivoima, pientuotanto, tehoreservi, yhteistuotanto_teollisuus, yhteistuotanto_kaukolämpö, tuulivoima),
                    values_to = "arvo", names_to = "muuttuja") %>%
       mutate(muuttuja = gsub("_", ", ", muuttuja)) %>%
       pivot_longer(cols = c(kokonaiskulutus),
                    names_to = "kokkul", values_to = "kokonaiskulutus") %>%
+      group_by(muuttuja) %>%
+      mutate(order = row_number()) %>%
 
       ggplot(aes(aika)) +
-      geom_col(aes(y = arvo, fill = muuttuja)) +
+      geom_col(aes(y = arvo, fill = muuttuja, group = order)) +
       scale_fill_manual(name = NULL,
                          #labels = c("pientuotanto", "tehoreservi", "tuulivoima",
                          #            "vesivoima", "ydinvoima", "yhteistuotanto, kaukolämpö", "yhteistuotanto, teollisuus"),
@@ -2376,27 +2487,28 @@ server <- function(input, output, session) {
 
         ## distinct
         summary <- data %>%
-          distinct(aika, n_total) %>%
-          rename(c("n" = "n_total"))
+          distinct(tilasto_time, n_total) %>%
+          rename(c("aika" = "tilasto_time", "n" = "n_total"))
 
       } else if(input$jaottelu == "ikäryhmä") {
 
         ## summarise
         summary <- data %>%
-          group_by(aika, n_total, age_group) %>%
+          group_by(tilasto_time, n_total, age_group) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
           mutate(osuus = round(osuus, 2)) %>%
-          rename(c("ikäryhmä" = "age_group"))
+          rename(c("aika" = "tilasto_time", "ikäryhmä" = "age_group"))
 
       } else if (input$jaottelu == "sukupuoli"){
 
         ## summarise
         summary <- data %>%
-          group_by(aika, n_total, sukupuoli) %>%
+          group_by(tilasto_time, n_total, sukupuoli) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
-          mutate(osuus = round(osuus, 2))
+          mutate(osuus = round(osuus, 2)) %>%
+          rename(c("aika" = "tilasto_time"))
 
       }
 
@@ -2424,37 +2536,38 @@ server <- function(input, output, session) {
 
         ## distinct
         summary <- data %>%
-          distinct(aika, n_total) %>%
-          rename(c( "n" = "n_total"))
+          distinct(tilasto_time, n_total) %>%
+          rename(c("aika" = "tilasto_time", "n" = "n_total"))
 
       } else if(input$jaottelu_emp == "ikäryhmä") {
 
         if(input$employed == "kotikunnan saaneet") {
           data <- data %>%
-            filter(aika >  dmy("01/02/2023"))
+            filter(tilasto_time >  dmy("01/02/2023"))
         }
 
         ## summarise
         summary <- data %>%
-          group_by(aika, n_total, age_group) %>%
+          group_by(tilasto_time, n_total, age_group) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
           mutate(osuus = round(osuus, 2)) %>%
-          rename(c("ikäryhmä" = "age_group"))
+          rename(c("aika" = "tilasto_time", "ikäryhmä" = "age_group"))
 
       } else if (input$jaottelu_emp == "sukupuoli"){
 
         if(input$employed == "kotikunnan saaneet") {
           data <- data %>%
-            filter(aika >  dmy("01/02/2023"))
+            filter(tilasto_time >  dmy("01/02/2023"))
         }
 
         ## summarise
         summary <- data %>%
-          group_by(aika, n_total, sukupuoli) %>%
+          group_by(tilasto_time, n_total, sukupuoli) %>%
           summarise(n = sum(n)) %>%
           mutate(osuus = n/n_total*100) %>%
-          mutate(osuus = round(osuus, 2))
+          mutate(osuus = round(osuus, 2)) %>%
+          rename(c("aika" = "tilasto_time"))
 
       }
 
@@ -2479,8 +2592,9 @@ server <- function(input, output, session) {
       ## get the data
       data <- ukraina_alat_ja_ammatit()
 
-      # ## rename variables
-      # data <- data %>% select(-ala)
+      ## rename variables
+      data <- data %>% select(-ala) %>%
+        rename(any_of(c("aika" = "tilasto_time", "ammattikoodi" = "prof_l3")))
 
       write.csv(data, file, row.names = F, fileEncoding = "ISO-8859-1")
     }
@@ -2510,6 +2624,25 @@ server <- function(input, output, session) {
 
       write.csv(data, file, row.names = F, fileEncoding = "UTF-8")
     }
+  )
+
+  output$download_viiksiplot <- downloadHandler(
+    filename = function() {
+      if(input$tarktaso == "Koko maa"){
+        return(paste0("datahuone_jakaumakaavio_suomi.csv"))
+      } else if(input$tarktaso == "Maakunnittain"){
+        return(paste0("datahuone_jakaumakaavio_maakunnittain.csv"))
+      } else {
+        return(paste0("datahuone_jakaumakaavio_kunnittain.csv"))
+      }
+    },
+    content = function(file){
+
+      data <- kunnat_data()
+
+      write.csv(data, file, row.names = F, fileEncoding = "UTF-8")
+    }
+
   )
 
   output$download <-downloadHandler(
