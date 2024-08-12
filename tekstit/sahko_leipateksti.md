@@ -3,7 +3,7 @@
 Täältä voit tarkastella suomalaisten kotitalouksien sähkönkulutusta Fingrid Datahubin rekisteriaineistoilla tuotetun tiedon avulla, jotka on yhdistetty Tilastokeskuksen rekisteriaineistoihin.
 
 
-Suomen kotitalouksien sähkönkulutusta on mahdollista tarkastella eri tarkastelutasoilla. Osiossa "Kotitalouksien kokonaiskulutuksen trendit" esitellään maantieteellisten alueiden kokonaissähkönkulutusta sekä väestöön suhteutettua sähkönkulutusta.
+Suomen kotitalouksien sähkönkulutusta on mahdollista tarkastella eri tarkastelutasoilla. Osiossa "Kotitalouksien kokonaiskulutuksen trendit" esitellään maantieteellisten alueiden kokonaissähkönkulutusta sekä asukaskohtaista sähkönkulutusta.
 
 
 Osiossa "Sosioekonomisten muuttujien vaikutus" voit tarkastella esimerkiksi asuntokuntien tulotason, asumismuodon ja koon vaikutusta sähkönkulutukseen.

@@ -257,7 +257,7 @@ ui <- navbarPage(
             label = NULL,
             selected = "Kokonaiskulutus",
             choices = c("Kokonaiskulutus",
-                        "per capita")
+                        "Asukaskohtainen kulutus")
           ),
           checkboxInput(
             inputId = 'aikasarjaViivat',
@@ -1205,12 +1205,12 @@ server <- function(input, output, session) {
     data <- aikasarja_data()
     print(data)
 
-    if(input$suure == 'per capita'){
+    if(input$suure == 'Asukaskohtainen kulutus'){
 
       data <- data %>%
         mutate(sahkonkul = sahkonkul / sum_ak)
 
-      y_akseli <-"Sähkönkulutus kWh / hlö"
+      y_akseli <-"Sähkönkulutus kWh / asukas"
 
     } else{
       data <- data %>%
