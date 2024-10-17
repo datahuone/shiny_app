@@ -1,3 +1,10 @@
+
+# N.B. Branch kehitys on kesken
+
+N.B.! Alla oleva teksti on luonnos projektin tulevasta rakenteesta, joka elää tällä hetkellä tässä branchissä. Rakenne on muutettu alla kuvatun mukaiseksi, mutta muutokset eivät ole vielä valmiita. Tärkeintä on muokata R/ui.R ja R/server.R tiedostopolut  siten, että ne ovat suhteessa R/server.R tiedostoon! Lisäksi funktiot on eroteltu omiksi useampaan eri tiedostoon, ja näiden polut pitää korjata, ennen kuin ohjelma toimii.
+
+*When Shiny runs the commands in server.R, it will treat all file paths as if they begin in the same directory as server.R. In other words, the directory that you save server.R in will become the working directory of your Shiny app.* https://shiny.posit.co/r/getstarted/shiny-basics/lesson5/
+
 # Datahuone Kojelauta
 
 Sivusto on löydetävissä osoitteesta [https://datahuone.shinyapps.io/dataholvi/](https://datahuone.shinyapps.io/dataholvi/). 
